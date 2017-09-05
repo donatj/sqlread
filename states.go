@@ -370,11 +370,13 @@ func createTableParamTypeSizeState(l *lexer) state {
 			return createTableParamDetailsState
 		}
 
-		r := rune(c)
+		if c != coma {
+			r := rune(c)
 
-		if !unicode.IsNumber(r) {
-			l.emit(TIllegal)
-			return nil
+			if !unicode.IsNumber(r) {
+				l.emit(TIllegal)
+				return nil
+			}
 		}
 	}
 }
