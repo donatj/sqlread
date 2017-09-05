@@ -166,7 +166,7 @@ func Lex(name string, input needToRead) (*lexer, chan LexItem) {
 	l := &lexer{
 		name:  name,
 		input: input,
-		items: make(chan LexItem),
+		items: make(chan LexItem, 20000),
 	}
 
 	return l, l.items
