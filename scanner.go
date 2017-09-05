@@ -94,9 +94,10 @@ func (l *lexer) peak(s int) (int, []byte) {
 	b := make([]byte, s)
 
 	n, err := l.input.ReadAt(b, l.pos)
-	if err != nil && err == io.EOF {
+	if err == io.EOF {
+		return n, b
+	} else if err != nil {
 		panic(err)
-		// return n, b
 	}
 
 	return n, b
