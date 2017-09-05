@@ -46,7 +46,7 @@ func insertIntoTableState(l *lexer) state {
 	l.start = l.pos
 	l.pos += 12
 
-	l.emit(TCreateTable)
+	l.emit(TInsertInto)
 	return identifierStateAction(insertValuesState)
 }
 
