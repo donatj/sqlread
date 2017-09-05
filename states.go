@@ -447,8 +447,6 @@ func eatDelimStr(l *lexer, delim byte) bool {
 		return false
 	}
 
-	last := eof
-
 	for {
 		c := l.next()
 
@@ -456,16 +454,20 @@ func eatDelimStr(l *lexer, delim byte) bool {
 			return false
 		}
 
-		if c == delim && last != bs {
+		if c == bs {
 			_, p := l.peak(1)
-			if p[0] != delim {
-				break
-			} else {
+			if p[0] == delim || p[0] == bs {
 				l.next()
 			}
-		}
+		} else if c == delim {
+			_, p := l.peak(1)
+			if p[0] == delim {
+				l.next()
+			} else {
+				break
+			}
 
-		last = c
+		}
 	}
 
 	return true
