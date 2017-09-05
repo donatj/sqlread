@@ -305,14 +305,44 @@ func createTableParamTypeState(l *lexer) state {
 			}
 
 			l.rewind()
-			l.emit(TColumnType)
+			li := l.emit(TColumnType)
 
 			if c == lprn {
+				if li.Val == "enum" {
+					return createTableParamTypeEnumValuesState
+				}
+
 				return createTableParamTypeSizeState
 			}
 
 			return createTableParamDetailsState
 		}
+	}
+}
+
+func createTableParamTypeEnumValuesState(l *lexer) state {
+	if l.accept([]byte{lprn}) != 1 {
+		l.emit(TIllegal)
+		return nil
+	}
+
+	l.start = l.pos
+	for {
+		if eatString(l) {
+			l.emit(TColumnEnumVal)
+		}
+
+		c := l.next()
+		if c == rprn {
+			return createTableParamDetailsState
+		}
+
+		if c != coma {
+			l.emit(TIllegal)
+			return nil
+		}
+
+		l.start = l.pos
 	}
 }
 

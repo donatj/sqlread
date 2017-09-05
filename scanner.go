@@ -33,6 +33,7 @@ const (
 
 	TColumnType
 	TColumnSize
+	TColumnEnumVal
 	TColumnDetails
 
 	TInsertInto
