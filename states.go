@@ -481,7 +481,7 @@ func eatIdentifier(l *lexer) bool {
 		return eatDelimStr(l, bt)
 	}
 
-	log.Fatal("non-backtick identifiers not implemented yet")
+	log.Fatal("non-backtick identifiers not implemented yet at:", l.pos)
 
 	return false
 }
