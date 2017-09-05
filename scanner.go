@@ -171,10 +171,7 @@ func Lex(name string, input needToRead) (*lexer, chan LexItem) {
 	return l, l.items
 }
 
-var item int64 = 0
-
 func (l *lexer) emit(t lexItemType) LexItem {
-	item++
 	b := make([]byte, (l.pos - l.start))
 	l.input.ReadAt(b, l.start)
 
