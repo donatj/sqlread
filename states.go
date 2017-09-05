@@ -127,7 +127,8 @@ func insertRowState(l *lexer) state {
 	if d == coma {
 		return insertRowState
 	}
-	log.Fatal("sauce")
+
+	l.emit(TIllegal)
 	return nil
 }
 
