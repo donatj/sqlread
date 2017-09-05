@@ -40,10 +40,10 @@ const (
 	TInsertRow
 )
 
-type lexItem struct {
-	typ lexItemType
-	val string
-	pos int64
+type LexItem struct {
+	Type lexItemType
+	Val  string
+	Pos  int64
 }
 
 type lexer struct {
@@ -52,7 +52,7 @@ type lexer struct {
 	start int64
 	pos   int64
 	// width int
-	items chan lexItem
+	items chan LexItem
 }
 
 const (
@@ -160,31 +160,32 @@ func (l *lexer) until(b byte) bool {
 	}
 }
 
-func Lex(name string, input needToRead) *lexer {
+func Lex(name string, input needToRead) (*lexer, chan LexItem) {
 	l := &lexer{
 		name:  name,
 		input: input,
-		items: make(chan lexItem),
+		items: make(chan LexItem),
 	}
 
-	go func() {
-		for {
-			<-l.items
-			// log.Println("read", c)
-		}
-	}()
-
-	return l
+	return l, l.items
 }
 
-func (l *lexer) emit(t lexItemType) {
+var item int64 = 0
 
+func (l *lexer) emit(t lexItemType) LexItem {
+	item++
 	b := make([]byte, (l.pos - l.start))
 	l.input.ReadAt(b, l.start)
 
-	// fmt.Println("emit", int(t), t.String(), string(b))
+	li := LexItem{
+		Type: t,
+		Val:  string(b),
+		Pos:  l.start,
+	}
 
-	l.items <- lexItem{t, string(b), l.start}
+	l.items <- li
+
+	return li
 }
 
 func in(b byte, bs []byte) bool {

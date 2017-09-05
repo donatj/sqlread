@@ -16,6 +16,19 @@ func main() {
 
 	// f.ReadAt
 
-	l := sqlread.Lex("sauce", f)
-	l.Run()
+	l, li := sqlread.Lex("sauce", f)
+	go func() {
+		l.Run()
+	}()
+
+	for {
+		c, ok := <-li
+		if ok {
+			log.Println("read", c.Type.String(), c.Pos, c.Val)
+		} else {
+			break
+		}
+	}
+
+	log.Println("finished initial pass")
 }
