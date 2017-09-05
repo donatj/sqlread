@@ -239,7 +239,7 @@ func createTableParamsState(l *lexer) state {
 func createTableParamState(l *lexer) state {
 	l.accept(whitespace)
 
-	if l.hasPrefix("PRIMARY KEY ") || l.hasPrefix("KEY ") || l.hasPrefix("CONSTRAINT ") {
+	if l.hasPrefix("PRIMARY KEY ") || l.hasPrefix("KEY ") || l.hasPrefix("CONSTRAINT ") || l.hasPrefix("UNIQUE KEY") {
 		return createTableDetailState
 	}
 
