@@ -9,23 +9,23 @@ func startState(l *lexer) state {
 	l.accept(sep)
 
 	if l.hasPrefix("--") {
-		return doubleDashCommentState(startState)
+		return doubleDashCommentStateBuilder(startState)
 	}
 
 	if l.hasPrefix("/*") {
-		return blockCommentState(startState)
+		return blockCommentStateBuilder(startState)
 	}
 
 	if l.hasPrefix("DROP TABLE ") {
-		return untilSemiState(TDropTableFullStmt)
+		return untilSemiStateBuilder(TDropTableFullStmt)
 	}
 
 	if l.hasPrefix("LOCK TABLES ") {
-		return untilSemiState(TLockTableFullStmt)
+		return untilSemiStateBuilder(TLockTableFullStmt)
 	}
 
 	if l.hasPrefix("UNLOCK TABLES") {
-		return untilSemiState(TUnlockTablesFullStmt)
+		return untilSemiStateBuilder(TUnlockTablesFullStmt)
 	}
 
 	if l.hasPrefix("CREATE TABLE ") {
@@ -37,7 +37,7 @@ func startState(l *lexer) state {
 	}
 
 	if l.hasPrefix("SET ") {
-		return untilSemiState(TSetFullStmt)
+		return untilSemiStateBuilder(TSetFullStmt)
 	}
 
 	n, p := l.peek(10)
@@ -51,7 +51,7 @@ func insertIntoTableState(l *lexer) state {
 	l.pos += 12
 
 	l.emit(TInsertInto)
-	return identifierStateAction(insertValuesState)
+	return identifierStateBuilder(insertValuesState)
 }
 
 func insertValuesState(l *lexer) state {
@@ -137,7 +137,7 @@ func insertRowState(l *lexer) state {
 	return nil
 }
 
-func doubleDashCommentState(ret state) state {
+func doubleDashCommentStateBuilder(ret state) state {
 	return func(l *lexer) state {
 		l.start = l.pos + 3
 		s := ""
@@ -155,7 +155,7 @@ func doubleDashCommentState(ret state) state {
 	}
 }
 
-func blockCommentState(ret state) state {
+func blockCommentStateBuilder(ret state) state {
 	return func(l *lexer) state {
 		l.pos += 2
 		l.start = l.pos
@@ -173,7 +173,7 @@ func blockCommentState(ret state) state {
 	}
 }
 
-func untilSemiState(emit lexItemType) state {
+func untilSemiStateBuilder(emit lexItemType) state {
 	return func(l *lexer) state {
 		l.start = l.pos
 
@@ -197,7 +197,7 @@ func createTableState(l *lexer) state {
 	l.pos += 13
 	l.emit(TCreateTable)
 
-	return identifierStateAction(createTableParamsState)
+	return identifierStateBuilder(createTableParamsState)
 }
 
 func createTableParamsState(l *lexer) state {
@@ -220,7 +220,7 @@ func createTableParamState(l *lexer) state {
 		return createTableDetailState
 	}
 
-	return identifierStateAction(createTableParamTypeState)
+	return identifierStateBuilder(createTableParamTypeState)
 }
 
 func createTableDetailState(l *lexer) state {
@@ -464,7 +464,7 @@ func eatIdentifier(l *lexer) bool {
 	return false
 }
 
-func identifierStateAction(ret state) state {
+func identifierStateBuilder(ret state) state {
 	return func(l *lexer) state {
 		l.start = l.pos
 
