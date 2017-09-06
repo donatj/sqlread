@@ -17,15 +17,15 @@ func startState(l *lexer) state {
 	}
 
 	if l.hasPrefix("DROP TABLE ") {
-		return dropTableState(l)
+		return untilSemiState(TDropTableFullStmt)
 	}
 
 	if l.hasPrefix("LOCK TABLES ") {
-		return lockTableState(l)
+		return untilSemiState(TLockTableFullStmt)
 	}
 
 	if l.hasPrefix("UNLOCK TABLES") {
-		return unlockTableState(l)
+		return untilSemiState(TUnlockTablesFullStmt)
 	}
 
 	if l.hasPrefix("CREATE TABLE ") {
@@ -37,7 +37,7 @@ func startState(l *lexer) state {
 	}
 
 	if l.hasPrefix("SET ") {
-		return setState
+		return untilSemiState(TSetFullStmt)
 	}
 
 	n, p := l.peek(10)
@@ -169,72 +169,23 @@ func blockCommentState(l *lexer, ret state) state {
 	return ret
 }
 
-func dropTableState(l *lexer) state {
-	l.start = l.pos
-
-	if l.until(semi) {
-		l.rewind()
-		l.emit(TDropTableFullStmt)
+func untilSemiState(emit lexItemType) state {
+	return func(l *lexer) state {
 		l.start = l.pos
-		l.pos++
-		l.emit(TSemi)
-	} else {
-		l.emit(TIllegal)
-		return nil
+
+		if l.until(semi) {
+			l.rewind()
+			l.emit(emit)
+			l.start = l.pos
+			l.pos++
+			l.emit(TSemi)
+		} else {
+			l.emit(TIllegal)
+			return nil
+		}
+
+		return startState
 	}
-
-	return startState
-}
-
-func lockTableState(l *lexer) state {
-	l.start = l.pos
-
-	if l.until(semi) {
-		l.rewind()
-		l.emit(TLockTableFullStmt)
-		l.start = l.pos
-		l.pos++
-		l.emit(TSemi)
-	} else {
-		l.emit(TIllegal)
-		return nil
-	}
-
-	return startState
-}
-
-func unlockTableState(l *lexer) state {
-	l.start = l.pos
-
-	if l.until(semi) {
-		l.rewind()
-		l.emit(TUnlockTablesFullStmt)
-		l.start = l.pos
-		l.pos++
-		l.emit(TSemi)
-	} else {
-		l.emit(TIllegal)
-		return nil
-	}
-
-	return startState
-}
-
-func setState(l *lexer) state {
-	l.start = l.pos
-
-	if l.until(semi) {
-		l.rewind()
-		l.emit(TSetFullStmt)
-		l.start = l.pos
-		l.pos++
-		l.emit(TSemi)
-	} else {
-		l.emit(TIllegal)
-		return nil
-	}
-
-	return startState
 }
 
 func createTableState(l *lexer) state {
