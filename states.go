@@ -76,6 +76,7 @@ func insertRowsState(l *lexer) state {
 	// _, pp := l.peak(5)
 	// log.Println(string(e), string(pp))
 	if e == coma && l.hasPrefix("(") {
+		l.emit(TComma)
 		l.pos++
 		return insertRowState
 	}

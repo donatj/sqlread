@@ -12,6 +12,7 @@ const (
 
 	TEof
 	TSemi
+	TComma
 
 	TComment
 
