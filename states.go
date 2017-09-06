@@ -239,7 +239,7 @@ func createTableParamsState(l *lexer) state {
 func createTableParamState(l *lexer) state {
 	l.accept(whitespace)
 
-	if l.hasPrefix("PRIMARY KEY ") || l.hasPrefix("KEY ") || l.hasPrefix("CONSTRAINT ") || l.hasPrefix("UNIQUE KEY") {
+	if l.hasPrefix("PRIMARY KEY ") || l.hasPrefix("KEY ") || l.hasPrefix("CONSTRAINT ") || l.hasPrefix("UNIQUE KEY") || l.hasPrefix(")") {
 		return createTableDetailState
 	}
 
@@ -249,7 +249,6 @@ func createTableParamState(l *lexer) state {
 func createTableDetailState(l *lexer) state {
 	l.start = l.pos
 	o := 0
-
 	for {
 		c := l.next()
 
@@ -390,7 +389,10 @@ func createTableParamDetailsState(l *lexer) state {
 		if c == coma || c == rprn {
 			l.rewind()
 			l.emit(TColumnDetails)
-			l.next()
+			if c == coma {
+				l.next()
+			}
+
 			return createTableParamState
 		}
 
