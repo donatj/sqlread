@@ -36,8 +36,12 @@ func startState(l *lexer) state {
 		return insertIntoTableState(l)
 	}
 
-	_, p := l.peek(100)
-	log.Println("peak ahead", string(p))
+	if l.hasPrefix("SET ") {
+		return setState
+	}
+
+	n, p := l.peek(10)
+	log.Println("peak ahead", string(p), n, p)
 
 	return nil
 }
@@ -205,6 +209,23 @@ func unlockTableState(l *lexer) state {
 	if l.until(semi) {
 		l.rewind()
 		l.emit(TUnlockTablesFullStmt)
+		l.start = l.pos
+		l.pos++
+		l.emit(TSemi)
+	} else {
+		l.emit(TIllegal)
+		return nil
+	}
+
+	return startState
+}
+
+func setState(l *lexer) state {
+	l.start = l.pos
+
+	if l.until(semi) {
+		l.rewind()
+		l.emit(TSetFullStmt)
 		l.start = l.pos
 		l.pos++
 		l.emit(TSemi)

@@ -24,6 +24,7 @@ const (
 	TDropTableFullStmt
 	TLockTableFullStmt
 	TUnlockTablesFullStmt
+	TSetFullStmt
 
 	TLParen
 	TRParen
@@ -110,7 +111,6 @@ func (l *lexer) hasPrefix(s string) bool {
 
 	return string(x) == string(y)
 }
-
 
 type state func(*lexer) state
 
