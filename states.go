@@ -9,11 +9,11 @@ func startState(l *lexer) state {
 	l.accept(sep)
 
 	if l.hasPrefix("--") {
-		return doubleDashCommentState(l, startState)
+		return doubleDashCommentState(startState)
 	}
 
 	if l.hasPrefix("/*") {
-		return blockCommentState(l, startState)
+		return blockCommentState(startState)
 	}
 
 	if l.hasPrefix("DROP TABLE ") {
@@ -29,11 +29,11 @@ func startState(l *lexer) state {
 	}
 
 	if l.hasPrefix("CREATE TABLE ") {
-		return createTableState(l)
+		return createTableState
 	}
 
 	if l.hasPrefix("INSERT INTO ") {
-		return insertIntoTableState(l)
+		return insertIntoTableState
 	}
 
 	if l.hasPrefix("SET ") {
@@ -137,36 +137,40 @@ func insertRowState(l *lexer) state {
 	return nil
 }
 
-func doubleDashCommentState(l *lexer, ret state) state {
-	l.start = l.pos + 3
-	s := ""
-	for {
-		b := l.next()
-		if b == eof || b == lf {
-			break
+func doubleDashCommentState(ret state) state {
+	return func(l *lexer) state {
+		l.start = l.pos + 3
+		s := ""
+		for {
+			b := l.next()
+			if b == eof || b == lf {
+				break
+			}
+			s += string(b)
 		}
-		s += string(b)
+
+		l.emit(TComment)
+
+		return ret
 	}
-
-	l.emit(TComment)
-
-	return ret
 }
 
-func blockCommentState(l *lexer, ret state) state {
-	l.pos += 2
-	l.start = l.pos
+func blockCommentState(ret state) state {
+	return func(l *lexer) state {
+		l.pos += 2
+		l.start = l.pos
 
-	for {
-		if l.hasPrefix("*/") {
-			l.emit(TComment)
-			l.pos += 2
-			break
+		for {
+			if l.hasPrefix("*/") {
+				l.emit(TComment)
+				l.pos += 2
+				break
+			}
+			l.next()
 		}
-		l.next()
-	}
 
-	return ret
+		return ret
+	}
 }
 
 func untilSemiState(emit lexItemType) state {
@@ -384,7 +388,6 @@ func createTableParamDetailsState(l *lexer) state {
 			eatString(l)
 		}
 	}
-	return nil
 }
 
 func eatNumber(l *lexer) bool {
