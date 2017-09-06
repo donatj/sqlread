@@ -49,7 +49,7 @@ type LexItem struct {
 
 type lexer struct {
 	name  string
-	input needToRead
+	input io.ReaderAt
 	start int64
 	pos   int64
 	// width int
@@ -110,9 +110,6 @@ func (l *lexer) hasPrefix(s string) bool {
 	return string(x) == string(y)
 }
 
-type needToRead interface {
-	ReadAt(b []byte, off int64) (n int, err error)
-}
 
 type state func(*lexer) state
 
@@ -162,7 +159,7 @@ func (l *lexer) until(b byte) bool {
 	}
 }
 
-func Lex(name string, input needToRead) (*lexer, chan LexItem) {
+func Lex(name string, input io.ReaderAt) (*lexer, chan LexItem) {
 	l := &lexer{
 		name:  name,
 		input: input,
