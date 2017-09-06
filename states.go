@@ -36,7 +36,7 @@ func startState(l *lexer) state {
 		return insertIntoTableState(l)
 	}
 
-	_, p := l.peak(100)
+	_, p := l.peek(100)
 	log.Println("peak ahead", string(p))
 
 	return nil
@@ -455,12 +455,12 @@ func eatDelimStr(l *lexer, delim byte) bool {
 		}
 
 		if c == bs {
-			_, p := l.peak(1)
+			_, p := l.peek(1)
 			if p[0] == delim || p[0] == bs {
 				l.next()
 			}
 		} else if c == delim {
-			_, p := l.peak(1)
+			_, p := l.peek(1)
 			if p[0] == delim {
 				l.next()
 			} else {

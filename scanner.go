@@ -76,7 +76,7 @@ const (
 )
 
 func (l *lexer) next() byte {
-	i, b := l.peak(1)
+	i, b := l.peek(1)
 	if i != 1 {
 		return eof
 	}
@@ -90,7 +90,7 @@ func (l *lexer) rewind() {
 	l.pos--
 }
 
-func (l *lexer) peak(s int) (int, []byte) {
+func (l *lexer) peek(s int) (int, []byte) {
 	b := make([]byte, s)
 
 	n, err := l.input.ReadAt(b, l.pos)
@@ -105,7 +105,7 @@ func (l *lexer) peak(s int) (int, []byte) {
 
 func (l *lexer) hasPrefix(s string) bool {
 	x := []byte(s)
-	_, y := l.peak(len(x))
+	_, y := l.peek(len(x))
 
 	return string(x) == string(y)
 }
