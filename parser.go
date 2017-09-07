@@ -95,11 +95,7 @@ func (t *SummaryParser) parseStart(p *parser) parseState {
 			break
 		}
 
-		log.Println(c, string(c.Type))
-
-		if isOfAny(c, TComment, TSemi, TDropTableFullStmt, TLockTableFullStmt, TUnlockTablesFullStmt, TSetFullStmt) {
-			continue
-		}
+		// log.Println(c, string(c.Type))
 
 		if isOfAny(c, TCreateTable) {
 			return t.parseCreate
@@ -107,6 +103,10 @@ func (t *SummaryParser) parseStart(p *parser) parseState {
 
 		if isOfAny(c, TInsertInto) {
 			return t.parseInsertInto
+		}
+
+		if isOfAny(c, TComment, TSemi, TDropTableFullStmt, TLockTableFullStmt, TUnlockTablesFullStmt, TSetFullStmt) {
+			continue
 		}
 
 		log.Fatal("dead", c, string(c.Type))
