@@ -140,13 +140,12 @@ func insertRowState(l *lexer) state {
 func doubleDashCommentStateBuilder(ret state) state {
 	return func(l *lexer) state {
 		l.start = l.pos + 3
-		s := ""
+
 		for {
 			b := l.next()
 			if b == eof || b == lf {
 				break
 			}
-			s += string(b)
 		}
 
 		l.emit(TComment)
