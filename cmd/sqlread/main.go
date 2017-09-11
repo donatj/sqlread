@@ -14,26 +14,27 @@ func main() {
 	go func() {
 		log.Println(http.ListenAndServe("localhost:8080", nil))
 	}()
-	f, err := os.Open("/Users/jdonat/Desktop/myon_PRODUCTION_110915.sql")
-	// f, err := os.Open("test.sql")
+
+	log.Println("starting initial pass")
+
+	// f, err := os.Open("/Users/jdonat/Desktop/myon_PRODUCTION_110915.sql")
+	// f, err := os.Open("/Users/jdonat/Desktop/donatstudios.sql")
+	f, err := os.Open("test.sql")
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	// f.ReadAt
 
 	l, li := sqlread.Lex("sauce", f)
 	go func() {
 		l.Run()
 	}()
 
-	for {
-		c, ok := <-li
-		if ok {
-			log.Println("read", c.Type.String(), c.Pos, c.Val)
-		} else {
-			break
-		}
+	sp := sqlread.NewSummaryParser()
+
+	p := sqlread.Parse(li)
+	err = p.Run(sp.ParseStart)
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	log.Println("finished initial pass")
