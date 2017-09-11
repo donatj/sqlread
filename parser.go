@@ -4,23 +4,25 @@ import (
 	"fmt"
 )
 
-type parser struct {
+// Parser is a dysyr based SQL Parser that reads LexItems on a channel
+type Parser struct {
 	items chan LexItem
 	err   error
 }
 
-func Parse(l chan LexItem) *parser {
-	return &parser{
+// Parse creates a new parser
+func Parse(l chan LexItem) *Parser {
+	return &Parser{
 		items: l,
 	}
 }
 
-func (p *parser) scan() (c LexItem, ok bool) {
+func (p *Parser) scan() (c LexItem, ok bool) {
 	c, ok = <-p.items
 	return
 }
 
-func (p *parser) scanUntil(l ...lexItemType) (c LexItem, ok bool) {
+func (p *Parser) scanUntil(l ...lexItemType) (c LexItem, ok bool) {
 	for {
 		c, ok = p.scan()
 		if !ok {
@@ -33,7 +35,9 @@ func (p *parser) scanUntil(l ...lexItemType) (c LexItem, ok bool) {
 	}
 }
 
-func (p *parser) Run(start parseState) error {
+// Run begins the Parser state machine
+// It requires a start state
+func (p *Parser) Run(start parseState) error {
 	for state := start; state != nil; {
 		state = state(p)
 	}
@@ -41,11 +45,11 @@ func (p *parser) Run(start parseState) error {
 	return p.err
 }
 
-func (p *parser) errorUnexpectedLex(f LexItem, e lexItemType) {
+func (p *Parser) errorUnexpectedLex(f LexItem, e lexItemType) {
 	p.err = fmt.Errorf("found '%s'; expected '%s' at byte: %d", f.Type.String(), e.String(), f.Pos)
 }
 
-func (p *parser) errorUnexpectedEof() {
+func (p *Parser) errorUnexpectedEOF() {
 	p.err = fmt.Errorf("unexpected eof")
 }
 
@@ -59,4 +63,4 @@ func isOfAny(c LexItem, l ...lexItemType) bool {
 	return false
 }
 
-type parseState func(*parser) parseState
+type parseState func(*Parser) parseState

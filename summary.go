@@ -30,7 +30,7 @@ func NewSummaryParser() *SummaryParser {
 	}
 }
 
-func (t *SummaryParser) ParseStart(p *parser) parseState {
+func (t *SummaryParser) ParseStart(p *Parser) parseState {
 	for {
 		c, ok := p.scan()
 		if !ok {
@@ -56,7 +56,7 @@ func (t *SummaryParser) ParseStart(p *parser) parseState {
 	return nil
 }
 
-func (t *SummaryParser) parseCreate(p *parser) parseState {
+func (t *SummaryParser) parseCreate(p *Parser) parseState {
 	c, ok := p.scan()
 	if !ok {
 		p.errorUnexpectedEof()
@@ -107,7 +107,7 @@ func (t *SummaryParser) parseCreate(p *parser) parseState {
 }
 
 func (t *SummaryParser) parseInsertIntoBuilder(il LexItem) parseState {
-	return func(p *parser) parseState {
+	return func(p *Parser) parseState {
 		c, ok := p.scan()
 		if !ok {
 			p.errorUnexpectedEof()
