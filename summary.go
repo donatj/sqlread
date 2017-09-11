@@ -15,18 +15,18 @@ type SummaryDataLoc struct {
 type SummaryTree map[string]SummaryTable
 
 type SummaryTable struct {
-	create   LexItem
-	cols     []SummaryColumn
-	dataLocs []SummaryDataLoc
+	Create   LexItem
+	Cols     []SummaryColumn
+	DataLocs []SummaryDataLoc
 }
 
 type SummaryParser struct {
-	tree SummaryTree
+	Tree SummaryTree
 }
 
 func NewSummaryParser() *SummaryParser {
 	return &SummaryParser{
-		tree: make(SummaryTree),
+		Tree: make(SummaryTree),
 	}
 }
 
@@ -44,7 +44,7 @@ func (t *SummaryParser) ParseStart(p *parser) parseState {
 		}
 
 		if isOfAny(c, TInsertInto) {
-			return t.parseInsertInto
+			return t.parseInsertIntoBuilder(c)
 		}
 
 		if isOfAny(c, TComment, TSemi, TDropTableFullStmt, TLockTableFullStmt, TUnlockTablesFullStmt, TSetFullStmt) {
@@ -67,10 +67,10 @@ func (t *SummaryParser) parseCreate(p *parser) parseState {
 		return nil
 	}
 
-	if _, ok := t.tree[c.Val]; !ok {
-		t.tree[c.Val] = SummaryTable{
-			create: c,
-			cols:   make([]SummaryColumn, 0),
+	if _, ok := t.Tree[c.Val]; !ok {
+		t.Tree[c.Val] = SummaryTable{
+			Create: c,
+			Cols:   make([]SummaryColumn, 0),
 		}
 	}
 
@@ -95,42 +95,44 @@ func (t *SummaryParser) parseCreate(p *parser) parseState {
 			return nil
 		}
 
-		v := t.tree[c.Val]
+		v := t.Tree[c.Val]
 
-		v.cols = append(v.cols, SummaryColumn{
+		v.Cols = append(v.Cols, SummaryColumn{
 			Name: x.Val,
 			Type: y.Val,
 		})
 
-		t.tree[c.Val] = v
+		t.Tree[c.Val] = v
 	}
 }
 
-func (t *SummaryParser) parseInsertInto(p *parser) parseState {
-	c, ok := p.scan()
-	if !ok {
-		p.errorUnexpectedEof()
-		return nil
+func (t *SummaryParser) parseInsertIntoBuilder(il LexItem) parseState {
+	return func(p *parser) parseState {
+		c, ok := p.scan()
+		if !ok {
+			p.errorUnexpectedEof()
+			return nil
+		}
+		if c.Type != TIdentifier {
+			p.errorUnexpectedLex(c, TIdentifier)
+			return nil
+		}
+
+		s, ok := p.scanUntil(TSemi)
+		if !ok {
+			p.errorUnexpectedEof()
+			return nil
+		}
+
+		v := t.Tree[c.Val]
+
+		v.DataLocs = append(v.DataLocs, SummaryDataLoc{
+			Start: il,
+			End:   s,
+		})
+
+		t.Tree[c.Val] = v
+
+		return t.ParseStart
 	}
-	if c.Type != TIdentifier {
-		p.errorUnexpectedLex(c, TIdentifier)
-		return nil
-	}
-
-	s, ok := p.scanUntil(TSemi)
-	if !ok {
-		p.errorUnexpectedEof()
-		return nil
-	}
-
-	v := t.tree[c.Val]
-
-	v.dataLocs = append(v.dataLocs, SummaryDataLoc{
-		Start: c, //@todo this needs to be the actual INSERT INTO lexeme
-		End:   s,
-	})
-
-	t.tree[c.Val] = v
-
-	return t.ParseStart
 }
