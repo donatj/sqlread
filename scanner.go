@@ -50,7 +50,6 @@ type LexItem struct {
 }
 
 type lexer struct {
-	name  string
 	input io.ReaderAt
 	start int64
 	pos   int64
@@ -160,11 +159,19 @@ func (l *lexer) until(b byte) bool {
 	}
 }
 
-func Lex(name string, input io.ReaderAt) (*lexer, chan LexItem) {
+func Lex(input io.ReaderAt) (*lexer, chan LexItem) {
 	l := &lexer{
-		name:  name,
 		input: input,
-		items: make(chan LexItem, 20000),
+		items: make(chan LexItem, 2000000),
+	}
+
+	return l, l.items
+}
+
+func LexSection(input io.ReaderAt, off, n int64) (*lexer, chan LexItem) {
+	l := &lexer{
+		input: io.NewSectionReader(input, off, n),
+		items: make(chan LexItem, 2000000),
 	}
 
 	return l, l.items
