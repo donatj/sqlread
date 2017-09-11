@@ -59,7 +59,7 @@ func (t *SummaryParser) ParseStart(p *Parser) parseState {
 func (t *SummaryParser) parseCreate(p *Parser) parseState {
 	c, ok := p.scan()
 	if !ok {
-		p.errorUnexpectedEof()
+		p.errorUnexpectedEOF()
 		return nil
 	}
 	if c.Type != TIdentifier {
@@ -77,7 +77,7 @@ func (t *SummaryParser) parseCreate(p *Parser) parseState {
 	for {
 		x, ok := p.scanUntil(TIdentifier, TSemi)
 		if !ok {
-			p.errorUnexpectedEof()
+			p.errorUnexpectedEOF()
 			return nil
 		}
 
@@ -87,7 +87,7 @@ func (t *SummaryParser) parseCreate(p *Parser) parseState {
 
 		y, ok := p.scan()
 		if !ok {
-			p.errorUnexpectedEof()
+			p.errorUnexpectedEOF()
 			return nil
 		}
 		if y.Type != TColumnType {
@@ -110,7 +110,7 @@ func (t *SummaryParser) parseInsertIntoBuilder(il LexItem) parseState {
 	return func(p *Parser) parseState {
 		c, ok := p.scan()
 		if !ok {
-			p.errorUnexpectedEof()
+			p.errorUnexpectedEOF()
 			return nil
 		}
 		if c.Type != TIdentifier {
@@ -120,7 +120,7 @@ func (t *SummaryParser) parseInsertIntoBuilder(il LexItem) parseState {
 
 		s, ok := p.scanUntil(TSemi)
 		if !ok {
-			p.errorUnexpectedEof()
+			p.errorUnexpectedEOF()
 			return nil
 		}
 
