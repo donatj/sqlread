@@ -45,8 +45,13 @@ func (p *Parser) Run(start parseState) error {
 	return p.err
 }
 
-func (p *Parser) errorUnexpectedLex(f LexItem, e lexItemType) {
-	p.err = fmt.Errorf("found '%s'; expected '%s' at byte: %d", f.Type.String(), e.String(), f.Pos)
+func (p *Parser) errorUnexpectedLex(f LexItem, e ...lexItemType) {
+	s := ""
+	for _, ei := range e {
+		s += "'" + ei.String() + "' "
+	}
+
+	p.err = fmt.Errorf("found '%s'; expected '%#v' at byte: %d", f.Type.String(), s, f.Pos)
 }
 
 func (p *Parser) errorUnexpectedEOF() {

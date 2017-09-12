@@ -1,7 +1,5 @@
 package sqlread
 
-import "log"
-
 type SummaryColumn struct {
 	Name string
 	Type string
@@ -51,7 +49,10 @@ func (t *SummaryParser) ParseStart(p *Parser) parseState {
 			continue
 		}
 
-		log.Fatal("dead", c, string(c.Type))
+		p.errorUnexpectedLex(c,
+			TCreateTable, TInsertInto,
+			TComment, TSemi, TDropTableFullStmt, TLockTableFullStmt, TUnlockTablesFullStmt, TSetFullStmt)
+		break
 	}
 	return nil
 }
