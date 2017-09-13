@@ -35,8 +35,6 @@ func (t *SummaryParser) ParseStart(p *Parser) parseState {
 			break
 		}
 
-		// log.Println(c, string(c.Type))
-
 		if isOfAny(c, TCreateTable) {
 			return t.parseCreate
 		}
@@ -50,7 +48,8 @@ func (t *SummaryParser) ParseStart(p *Parser) parseState {
 		}
 
 		p.errorUnexpectedLex(c,
-			TCreateTable, TInsertInto,
+			TCreateTable,
+			TInsertInto,
 			TComment, TSemi, TDropTableFullStmt, TLockTableFullStmt, TUnlockTablesFullStmt, TSetFullStmt)
 		break
 	}
