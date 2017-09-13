@@ -63,11 +63,9 @@ func (d *InsertDetailParser) ParseStart(p *Parser) parseState {
 		case TSemi:
 			d.Out <- row
 			close(d.Out)
-			break
+			return nil
 		}
 	}
-
-	return nil
 }
 
 var errorInvalidString = errors.New("invalid string")
