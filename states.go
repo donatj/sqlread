@@ -5,27 +5,27 @@ import (
 	"unicode"
 )
 
-func startState(l *lexer) state {
+func StartState(l *lexer) state {
 	l.accept(sep)
 
 	if l.hasPrefix("--") {
-		return doubleDashCommentStateBuilder(startState)
+		return doubleDashCommentStateBuilder(StartState)
 	}
 
 	if l.hasPrefix("/*") {
-		return blockCommentStateBuilder(startState)
+		return blockCommentStateBuilder(StartState)
 	}
 
 	if l.hasPrefix("DROP TABLE ") {
-		return untilSemiStateBuilder(TDropTableFullStmt)
+		return untilSemiStateBuilder(TDropTableFullStmt, StartState)
 	}
 
 	if l.hasPrefix("LOCK TABLES ") {
-		return untilSemiStateBuilder(TLockTableFullStmt)
+		return untilSemiStateBuilder(TLockTableFullStmt, StartState)
 	}
 
 	if l.hasPrefix("UNLOCK TABLES") {
-		return untilSemiStateBuilder(TUnlockTablesFullStmt)
+		return untilSemiStateBuilder(TUnlockTablesFullStmt, StartState)
 	}
 
 	if l.hasPrefix("CREATE TABLE ") {
@@ -37,7 +37,7 @@ func startState(l *lexer) state {
 	}
 
 	if l.hasPrefix("SET ") {
-		return untilSemiStateBuilder(TSetFullStmt)
+		return untilSemiStateBuilder(TSetFullStmt, StartState)
 	}
 
 	n, p := l.peek(10)
@@ -87,7 +87,7 @@ func insertRowsState(l *lexer) state {
 
 	if e == semi {
 		l.emit(TSemi)
-		return startState
+		return StartState
 	}
 
 	l.emit(TIllegal)
@@ -172,7 +172,7 @@ func blockCommentStateBuilder(ret state) state {
 	}
 }
 
-func untilSemiStateBuilder(emit lexItemType) state {
+func untilSemiStateBuilder(emit lexItemType, ret state) state {
 	return func(l *lexer) state {
 		l.start = l.pos
 
@@ -187,7 +187,7 @@ func untilSemiStateBuilder(emit lexItemType) state {
 			return nil
 		}
 
-		return startState
+		return ret
 	}
 }
 
@@ -261,7 +261,7 @@ func createTableExtra(l *lexer) state {
 		}
 
 		if c == semi {
-			return startState
+			return StartState
 		}
 	}
 }

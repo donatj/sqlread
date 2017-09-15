@@ -134,8 +134,8 @@ var (
 	numbers    = []byte("0123456789")
 )
 
-func (l *lexer) Run() {
-	for state := startState; state != nil; {
+func (l *lexer) Run(start state) {
+	for state := start; state != nil; {
 		state = state(l)
 	}
 	close(l.items)

@@ -1,95 +1,146 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"os"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/donatj/sqlread"
-	input "github.com/tcnksm/go-input"
+	"github.com/donatj/sqlread/mapcache"
 )
 
-func main() {
-	ui := &input.UI{
-		Writer: os.Stderr,
-		Reader: os.Stdin,
-	}
+var filename string
 
+var (
+	nocache = flag.Bool("nocache", false, "disable caching")
+)
+
+func init() {
+	flag.Parse()
+
+	filename = flag.Arg(0)
+}
+
+func main() {
+	// return
 	log.Println("starting initial pass")
 
-	// f, err := os.Open("/Users/jdonat/Desktop/myon_PRODUCTION_110915.sql")
-	// f, err := os.Open("/Users/jdonat/Desktop/donatstudios.sql")
-	f, err := os.Open("test.sql")
+	unbuff, err := os.Open(filename)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	l, li := sqlread.Lex(f)
-	go func() {
-		l.Run()
-	}()
-
-	sp := sqlread.NewSummaryParser()
-
-	p := sqlread.Parse(li)
-	err = p.Run(sp.ParseStart)
-	if err != nil {
+	cache := mapcache.New(unbuff)
+	tree, err := cache.Get()
+	if err != nil && err != mapcache.ErrCacheMiss {
 		log.Fatal(err)
+	}
+
+	fmt.Println(*nocache)
+
+	if err == mapcache.ErrCacheMiss || *nocache {
+		l, li := sqlread.Lex(unbuff)
+		go func() {
+			l.Run(sqlread.StartState)
+		}()
+
+		sp := sqlread.NewSummaryParser()
+
+		p := sqlread.Parse(li)
+		err = p.Run(sp.ParseStart)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if !*nocache {
+			cache.Store(sp.Tree)
+		}
+
+		tree = sp.Tree
+	} else {
+		log.Println("loaded from cache")
 	}
 
 	log.Println("finished initial pass")
 
+	//for tbl, _ := range t {
+	//	fmt.Println(tbl)
+	//}
+
+	_ = tree
+
+	interactive()
+}
+
+func interactive() {
+	sw := NewStdinWrap(os.Stdin)
+
 	for {
-		tbl, err := ui.Ask("Table:", &input.Options{
-			Required: true,
-			Loop:     true,
-		})
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		if _, ok := sp.Tree[tbl]; !ok {
-			log.Printf("unknown table: `%s`\n", tbl)
-			continue
-		}
-
-		// spew.Dump(sp.Tree[tbl])
-
-		col, err := ui.Ask("Column:", &input.Options{
-			Required: true,
-			Loop:     true,
-		})
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		is := []int{}
-		for i, c := range sp.Tree[tbl].Cols {
-			if c.Name == col {
-				is = append(is, i)
-			}
-		}
-
-		fmt.Printf("%#v", is)
-
-		start := sp.Tree[tbl].DataLocs[0].Start.Pos
-		end := sp.Tree[tbl].DataLocs[0].End.Pos
-
-		sl, sli := sqlread.LexSection(f, start, end-start+1)
+		stdinlex, stdli := sqlread.Lex(sw)
 		go func() {
-			sl.Run()
+			stdinlex.Run(sqlread.StartIntpState)
 		}()
 
 		for {
-			c, ok := <-sli
+			x, ok := <-stdli
 			if !ok {
+				log.Println("Failed to parser user query.")
 				break
 			}
 
-			log.Println(c.Pos, c.Type, string(c.Type), c.Val)
+			spew.Dump(x)
+
+			// tbl, err := ui.Ask("Table:", &input.Options{
+			// 	Required: true,
+			// 	Loop:     true,
+			// })
+			// if err != nil {
+			// 	log.Fatal(err)
+			// }
+
+			/*
+				if _, ok := tree[tbl]; !ok {
+					log.Printf("unknown table: `%s`\n", tbl)
+					continue
+				}
+
+				for _, loc := range tree[tbl].DataLocs {
+					start := loc.Start.Pos
+					end := loc.End.Pos
+
+					sl, sli := sqlread.LexSection(buff, start, end-start+1)
+					go func() {
+						sl.Run()
+					}()
+
+					sp := sqlread.NewInsertDetailParser()
+
+					spr := sqlread.Parse(sli)
+					go func() {
+						err := spr.Run(sp.ParseStart)
+						if err != nil {
+							log.Fatal(err)
+						}
+					}()
+
+					w := csv.NewWriter(os.Stdout)
+
+					for {
+						row, ok := <-sp.Out
+						if !ok {
+							w.Flush()
+							break
+						}
+
+						w.Write(row)
+					}
+				}
+			*/
 		}
+
+		sw.Flush()
+		log.Println("restarting lexer")
 	}
-
-	// spew.Dump(sp.Tree)
-
 }
