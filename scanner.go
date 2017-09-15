@@ -31,7 +31,6 @@ const (
 
 	TCreateTable
 	TCreateTableDetail
-	TCreateTableExtra
 
 	TColumnType
 	TColumnSize
@@ -40,7 +39,6 @@ const (
 
 	TInsertInto
 	TInsertValues
-	TInsertRow
 )
 
 type LexItem struct {
