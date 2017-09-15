@@ -4,9 +4,9 @@ package sqlread
 
 import "fmt"
 
-const _lexItemType_name = "TIllegalTEofTSemiTCommaTCommentTNullTStringTNumberTIdentifierTDropTableFullStmtTLockTableFullStmtTUnlockTablesFullStmtTSetFullStmtTLParenTRParenTCreateTableTCreateTableDetailTCreateTableExtraTColumnTypeTColumnSizeTColumnEnumValTColumnDetailsTInsertIntoTInsertValuesTInsertRow"
+const _lexItemType_name = "TIllegalTEofTSemiTCommaTCommentTNullTStringTNumberTIdentifierTDropTableFullStmtTLockTableFullStmtTUnlockTablesFullStmtTSetFullStmtTLParenTRParenTCreateTableTCreateTableDetailTColumnTypeTColumnSizeTColumnEnumValTColumnDetailsTInsertIntoTInsertValues"
 
-var _lexItemType_index = [...]uint16{0, 8, 12, 17, 23, 31, 36, 43, 50, 61, 79, 97, 118, 130, 137, 144, 156, 174, 191, 202, 213, 227, 241, 252, 265, 275}
+var _lexItemType_index = [...]uint8{0, 8, 12, 17, 23, 31, 36, 43, 50, 61, 79, 97, 118, 130, 137, 144, 156, 174, 185, 196, 210, 224, 235, 248}
 
 func (i lexItemType) String() string {
 	if i >= lexItemType(len(_lexItemType_index)-1) {
