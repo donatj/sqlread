@@ -39,6 +39,15 @@ const (
 
 	TInsertInto
 	TInsertValues
+
+	// Values Below Are Specific to the interpreter
+	TIntpSelect
+	TIntpStar
+	TIntpFrom
+	TIntpIntoOutfile
+	TIntpShowTables
+
+	TIntpQuit
 )
 
 type LexItem struct {
