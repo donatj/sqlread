@@ -3,3 +3,4 @@
 
 *.svg
 *.txt
+/cmd/sqlread/pprof.go

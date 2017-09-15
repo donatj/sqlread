@@ -3,8 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"net/http"
-	_ "net/http/pprof"
 	"os"
 
 	"github.com/donatj/sqlread"
@@ -16,10 +14,6 @@ func main() {
 		Writer: os.Stderr,
 		Reader: os.Stdin,
 	}
-
-	go func() { // fir pprof - temporary
-		log.Println(http.ListenAndServe("localhost:8080", nil))
-	}()
 
 	log.Println("starting initial pass")
 
