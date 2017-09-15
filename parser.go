@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-// Parser is a dysyr based SQL Parser that reads LexItems on a channel
+// Parser is a state based SQL Parser that reads LexItems on a channel
 type Parser struct {
 	items chan LexItem
 	err   error

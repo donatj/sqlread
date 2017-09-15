@@ -185,7 +185,7 @@ func LexSection(input io.ReaderAt, off, n int64) (*lexer, chan LexItem) {
 }
 
 func (l *lexer) emit(t lexItemType) LexItem {
-	b := make([]byte, (l.pos - l.start))
+	b := make([]byte, l.pos-l.start)
 	l.input.ReadAt(b, l.start)
 
 	li := LexItem{
