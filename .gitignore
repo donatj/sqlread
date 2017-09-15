@@ -1,3 +1,5 @@
 *.sql
+*.sql.sqlmap
+
 *.svg
 *.txt
