@@ -2,6 +2,7 @@ package sqlread
 
 import (
 	"io"
+	"strings"
 )
 
 type lexItemType uint8
@@ -116,6 +117,13 @@ func (l *lexer) hasPrefix(s string) bool {
 	_, y := l.peek(len(x))
 
 	return string(x) == string(y)
+}
+
+func (l *lexer) hasPrefixI(s string) bool {
+	x := []byte(s)
+	_, y := l.peek(len(x))
+
+	return strings.EqualFold(string(x), string(y))
 }
 
 type state func(*lexer) state
