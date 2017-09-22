@@ -141,5 +141,6 @@ func selectFromIntoOutfileIntpState(l *lexer) state {
 		return nil
 	}
 
+	l.emit(TSemi)
 	return nil
 }
