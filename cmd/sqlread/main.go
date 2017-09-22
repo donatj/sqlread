@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/csv"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
 
@@ -72,10 +74,11 @@ func main() {
 
 	_ = tree
 
-	interactive()
+	interactive(tree, unbuff)
 }
 
-func interactive() {
+func interactive(tree sqlread.SummaryTree, buff io.ReaderAt) {
+	w := csv.NewWriter(os.Stdout)
 	sw := NewStdinWrap(os.Stdin)
 
 	for {
@@ -89,11 +92,87 @@ func interactive() {
 		p := sqlread.Parse(stdli)
 		err := p.Run(qp.ParseStart)
 		if err != nil {
-			log.Println(err)
+			log.Println("query error: ", err)
+			sw.Flush()
 			continue
 		}
 
 		spew.Dump(qp.Tree)
+
+	queryloop:
+		for _, qry := range qp.Tree.Queries {
+			tbl, tok := tree[qry.Table]
+			if !tok {
+				log.Printf("table `%s` not found", qry.Table)
+				continue
+			}
+
+			colind := []int{}
+
+			for _, col := range qry.Columns {
+				found := false
+				for tci, tcol := range tbl.Cols {
+					if col == "*" || col == tcol.Name {
+						found = true
+						colind = append(colind, tci)
+					}
+				}
+
+				if !found {
+					log.Printf("error: column `%s` not found", col)
+					continue queryloop
+				}
+			}
+
+			spew.Dump(colind)
+
+			for _, loc := range tbl.DataLocs {
+				start := loc.Start.Pos
+				end := loc.End.Pos
+
+				sl, sli := sqlread.LexSection(buff, start, end-start+1)
+				go func() {
+					sl.Run(sqlread.StartState)
+				}()
+
+				sp := sqlread.NewInsertDetailParser()
+
+				spr := sqlread.Parse(sli)
+				go func() {
+					err := spr.Run(sp.ParseStart)
+					if err != nil {
+						log.Fatal(err)
+					}
+				}()
+
+				for {
+					row, ok := <-sp.Out
+					if !ok {
+						w.Flush()
+						break
+					}
+
+					out := make([]string, len(colind))
+					for i, ci := range colind {
+						out[i] = row[ci]
+					}
+
+					w.Write(out)
+				}
+			}
+		}
+
+		for i := uint(0); i < qp.Tree.ShowTables; i++ {
+			for cv, _ := range tree {
+				w.Write([]string{cv})
+			}
+
+			w.Flush()
+		}
+
+		if qp.Tree.Quit {
+			return
+		}
 
 		// for {
 		// 	x, ok := <-stdli
