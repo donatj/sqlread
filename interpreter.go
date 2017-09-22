@@ -64,6 +64,7 @@ func showColumnsIntpState(l *lexer) state {
 		return nil
 	}
 
+	l.accept(whitespace)
 	l.start = l.pos
 
 	c := l.next()
@@ -159,6 +160,9 @@ func selectFromIntpState(l *lexer) state {
 		}
 	}
 
+	l.accept(whitespace)
+	l.start = l.pos
+
 	if c != semi {
 		l.emit(TIllegal)
 		return nil
@@ -185,6 +189,7 @@ func selectFromIntoOutfileIntpState(l *lexer) state {
 	l.emit(TString)
 
 	l.accept(whitespace)
+	l.pos = l.start
 
 	c := l.next()
 	if c != semi {
