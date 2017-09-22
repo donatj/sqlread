@@ -9,7 +9,7 @@ type Query struct {
 type QueryTree struct {
 	Queries    []Query
 	ShowTables uint
-	Exit       bool
+	Quit       bool
 }
 
 type QueryParser struct {
@@ -21,7 +21,7 @@ func NewQueryParser() *QueryParser {
 		Tree: QueryTree{
 			Queries:    make([]Query, 0),
 			ShowTables: 0,
-			Exit:       false,
+			Quit:       false,
 		},
 	}
 }
@@ -44,6 +44,9 @@ func (q *QueryParser) ParseStart(p *Parser) parseState {
 		if isOfAny(c, TIntpQuit) {
 			return q.parseQuit
 		}
+
+		p.errorUnexpectedLex(c, TIntpSelect, TIntpShowTables, TIntpQuit)
+		return nil
 	}
 
 	return nil
@@ -60,7 +63,7 @@ func (q *QueryParser) parseQuit(p *Parser) parseState {
 		return nil
 	}
 
-	q.Tree.Exit = true
+	q.Tree.Quit = true
 
 	return q.ParseStart
 }
@@ -82,5 +85,117 @@ func (q *QueryParser) parseShowTables(p *Parser) parseState {
 }
 
 func (q *QueryParser) parseSelect(p *Parser) parseState {
-	return nil
+	qry := &Query{
+		Columns: make([]string, 0),
+	}
+
+	for {
+		i, ok := p.scan()
+		if !ok {
+			p.errorUnexpectedEOF()
+			return nil
+		}
+
+		if isOfAny(i, TIdentifier, TIntpStar) {
+			value := i.Val
+			if i.Type == TIdentifier {
+				value = identValue(i)
+			}
+
+			qry.Columns = append(qry.Columns, value)
+
+			j, ok := p.scan()
+			if !ok {
+				p.errorUnexpectedEOF()
+				return nil
+			}
+
+			if j.Type == TComma {
+				continue
+			}
+
+			if j.Type == TIntpFrom {
+				return q.parseSelectFromBuilder(qry)
+			}
+
+			p.errorUnexpectedLex(i, TComma, TIntpFrom)
+			return nil
+		}
+
+		p.errorUnexpectedLex(i, TIdentifier, TIntpStar)
+		return nil
+	}
+}
+
+func (q *QueryParser) parseSelectFromBuilder(qry *Query) parseState {
+	return func(p *Parser) parseState {
+		c, ok := p.scan()
+		if !ok {
+			p.errorUnexpectedEOF()
+			return nil
+		}
+
+		if c.Type != TIdentifier {
+			p.errorUnexpectedLex(c, TIdentifier)
+			return nil
+		}
+
+		qry.Table = identValue(c)
+
+		d, ok := p.scan()
+		if !ok {
+			p.errorUnexpectedEOF()
+			return nil
+		}
+
+		if d.Type == TSemi {
+			q.Tree.Queries = append(q.Tree.Queries, *qry)
+			return nil
+		}
+
+		if d.Type == TIntpIntoOutfile {
+			return q.parseSelectIntoOutfileBuilder(qry)
+		}
+
+		p.errorUnexpectedLex(d, TSemi, TIntpIntoOutfile)
+		return nil
+	}
+}
+
+func (q *QueryParser) parseSelectIntoOutfileBuilder(qry *Query) parseState {
+	return func(p *Parser) parseState {
+		c, ok := p.scan()
+		if !ok {
+			p.errorUnexpectedEOF()
+			return nil
+		}
+
+		if c.Type != TString {
+			p.errorUnexpectedLex(c, TString)
+			return nil
+		}
+
+		s, err := stringValue(c)
+		if err != nil {
+			p.err = err
+			return nil
+		}
+
+		qry.Outfile = &s
+
+		d, ok := p.scan()
+		if d.Type == TSemi {
+			q.Tree.Queries = append(q.Tree.Queries, *qry)
+			return nil
+		}
+
+		p.errorUnexpectedLex(d, TSemi)
+		return nil
+	}
+}
+
+func identValue(c LexItem) string {
+	// remove backticks - if/when we implement backtickless
+	// identifiers this will need to be better handled.
+	return c.Val[1 : len(c.Val)-1]
 }
