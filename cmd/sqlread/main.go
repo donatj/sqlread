@@ -170,6 +170,19 @@ func interactive(tree sqlread.SummaryTree, buff io.ReaderAt) {
 			w.Flush()
 		}
 
+		for _, sctbl := range qp.Tree.ShowColumns {
+			tbl, tok := tree[sctbl]
+			if !tok {
+				log.Printf("table `%s` not found", sctbl)
+			}
+
+			for _, col := range tbl.Cols {
+				w.Write([]string{col.Name, col.Type})
+			}
+
+			w.Flush()
+		}
+
 		if qp.Tree.Quit {
 			return
 		}
