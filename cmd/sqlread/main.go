@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/davecgh/go-spew/spew"
+
 	"github.com/donatj/sqlread"
 	"github.com/donatj/sqlread/mapcache"
 )
@@ -83,62 +84,26 @@ func interactive() {
 			stdinlex.Run(sqlread.StartIntpState)
 		}()
 
-		for {
-			x, ok := <-stdli
-			if !ok {
-				log.Println("Failed to parser user query.")
-				break
-			}
+		qp := sqlread.NewQueryParser()
 
-			spew.Dump(x)
-
-			// tbl, err := ui.Ask("Table:", &input.Options{
-			// 	Required: true,
-			// 	Loop:     true,
-			// })
-			// if err != nil {
-			// 	log.Fatal(err)
-			// }
-
-			/*
-				if _, ok := tree[tbl]; !ok {
-					log.Printf("unknown table: `%s`\n", tbl)
-					continue
-				}
-
-				for _, loc := range tree[tbl].DataLocs {
-					start := loc.Start.Pos
-					end := loc.End.Pos
-
-					sl, sli := sqlread.LexSection(buff, start, end-start+1)
-					go func() {
-						sl.Run()
-					}()
-
-					sp := sqlread.NewInsertDetailParser()
-
-					spr := sqlread.Parse(sli)
-					go func() {
-						err := spr.Run(sp.ParseStart)
-						if err != nil {
-							log.Fatal(err)
-						}
-					}()
-
-					w := csv.NewWriter(os.Stdout)
-
-					for {
-						row, ok := <-sp.Out
-						if !ok {
-							w.Flush()
-							break
-						}
-
-						w.Write(row)
-					}
-				}
-			*/
+		p := sqlread.Parse(stdli)
+		err := p.Run(qp.ParseStart)
+		if err != nil {
+			log.Println(err)
+			continue
 		}
+
+		spew.Dump(qp.Tree)
+
+		// for {
+		// 	x, ok := <-stdli
+		// 	if !ok {
+		// 		break
+		// 	}
+
+		// 	spew.Dump(x)
+
+		// }
 
 		sw.Flush()
 		log.Println("restarting lexer")

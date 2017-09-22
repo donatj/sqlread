@@ -1,13 +1,8 @@
 package sqlread
 
-import "log"
-
 func StartIntpState(l *lexer) state {
-	log.Println("a")
 	l.accept(sep)
-	log.Println("b")
 
-	log.Println("c")
 	if l.hasPrefixI("S") && l.hasPrefixI("SHOW") {
 		l.pos += 4
 		if l.accept(whitespace) < 1 || !l.hasPrefixI("TABLES") {
@@ -15,11 +10,11 @@ func StartIntpState(l *lexer) state {
 			return nil
 		}
 
-		return untilSemiStateBuilder(TIntpShowTables, StartIntpState)
+		return untilSemiStateBuilder(TIntpShowTables, nil)
 	}
-	log.Println("d")
+
 	if (l.hasPrefixI("Q") || l.hasPrefixI("E")) && (l.hasPrefixI("QUIT") || l.hasPrefixI("EXIT")) {
-		return untilSemiStateBuilder(TIntpQuit, StartIntpState)
+		return untilSemiStateBuilder(TIntpQuit, nil)
 	}
 
 	if l.hasPrefixI("S") && l.hasPrefixI("SELECT") {
@@ -71,7 +66,9 @@ func selectIdentifierIntpState(l *lexer) state {
 		return selectIdentifierIntpState
 	}
 
-	return StartIntpState
+	// return StartIntpState
+	l.emit(TIllegal)
+	return nil
 }
 
 func selectFromIntpState(l *lexer) state {
@@ -97,11 +94,52 @@ func selectFromIntpState(l *lexer) state {
 	l.start = l.pos
 
 	c := l.next()
+	if c == byte('i') || c == byte('I') {
+		if l.hasPrefixI("NTO") {
+			l.pos += 3
+			if l.accept(whitespace) < 1 {
+				l.emit(TIllegal)
+				return nil
+			}
+			if l.hasPrefixI("O") && l.hasPrefixI("OUTFILE") {
+				l.pos += 7
+				return selectFromIntoOutfileIntpState
+			}
+		}
+	}
+
 	if c != semi {
 		l.emit(TIllegal)
 		return nil
 	}
 
 	l.emit(TSemi)
-	return StartIntpState
+	return nil
+}
+
+func selectFromIntoOutfileIntpState(l *lexer) state {
+	l.emit(TIntpIntoOutfile)
+	l.start = l.pos
+
+	if l.accept(whitespace) < 1 {
+		l.emit(TIllegal)
+		return nil
+	}
+
+	l.start = l.pos
+	if !eatString(l) {
+		l.emit(TIllegal)
+		return nil
+	}
+	l.emit(TString)
+
+	l.accept(whitespace)
+
+	c := l.next()
+	if c != semi {
+		l.emit(TIllegal)
+		return nil
+	}
+
+	return nil
 }
