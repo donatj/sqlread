@@ -46,7 +46,9 @@ const (
 	TIntpStar
 	TIntpFrom
 	TIntpIntoOutfile
+
 	TIntpShowTables
+	TIntpShowColumns
 
 	TIntpQuit
 )
