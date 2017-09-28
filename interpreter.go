@@ -160,7 +160,6 @@ func selectFromIntpState(l *lexer) state {
 		}
 	}
 
-	l.accept(whitespace)
 	l.start = l.pos
 
 	if c != semi {
