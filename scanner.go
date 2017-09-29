@@ -78,6 +78,7 @@ const (
 	lprn = byte(40) // (
 	rprn = byte(41) // )
 	coma = byte(44) // ,
+	dash = byte(45) // -
 
 	sq = byte(39) // '
 	dq = byte(34) // "

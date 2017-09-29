@@ -99,7 +99,7 @@ func insertRowState(l *lexer) state {
 	for {
 		c := l.next()
 
-		if in(c, numbers) {
+		if in(c, numbers) || c == dash {
 			l.rewind()
 			if eatNumber(l) {
 				l.emit(TNumber)
@@ -390,6 +390,10 @@ func createTableParamDetailsState(l *lexer) state {
 }
 
 func eatNumber(l *lexer) bool {
+	if l.hasPrefix("-") {
+		l.pos++
+	}
+
 	n1 := l.accept(numbers)
 	n2 := 0
 
