@@ -89,11 +89,10 @@ const (
 
 func (l *lexer) next() byte {
 	i, b := l.peek(1)
+	l.pos++
 	if i != 1 {
 		return eof
 	}
-
-	l.pos++
 
 	return b[0]
 }
