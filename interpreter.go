@@ -1,6 +1,16 @@
 package sqlread
 
-func StartIntpState(l *lexer) state {
+type Intp struct {
+	EOF bool
+}
+
+func (intp *Intp) StartIntpState(l *lexer) state {
+	_, p := l.peek(1)
+	if p[0] == eof {
+		intp.EOF = true
+		return nil
+	}
+
 	l.accept(sep)
 
 	if l.hasPrefixI("S") && l.hasPrefixI("SHOW") {
@@ -14,7 +24,7 @@ func StartIntpState(l *lexer) state {
 			return untilSemiStateBuilder(TIntpShowTables, nil)
 		}
 		if l.hasPrefixI("COLUMNS") {
-			return showColumnsIntpState
+			return intp.showColumnsIntpState
 		}
 
 		l.emit(TIllegal)
@@ -26,13 +36,13 @@ func StartIntpState(l *lexer) state {
 	}
 
 	if l.hasPrefixI("S") && l.hasPrefixI("SELECT") {
-		return selectIntpState
+		return intp.selectIntpState
 	}
 
 	return nil
 }
 
-func showColumnsIntpState(l *lexer) state {
+func (intp *Intp) showColumnsIntpState(l *lexer) state {
 	l.pos += 7
 	l.emit(TIntpShowColumns)
 
@@ -76,7 +86,7 @@ func showColumnsIntpState(l *lexer) state {
 	return nil
 }
 
-func selectIntpState(l *lexer) state {
+func (intp *Intp) selectIntpState(l *lexer) state {
 	l.start = l.pos
 	l.pos += 6
 
@@ -87,10 +97,10 @@ func selectIntpState(l *lexer) state {
 		return nil
 	}
 
-	return selectIdentifierIntpState
+	return intp.selectIdentifierIntpState
 }
 
-func selectIdentifierIntpState(l *lexer) state {
+func (intp *Intp) selectIdentifierIntpState(l *lexer) state {
 	l.accept(whitespace)
 	l.start = l.pos
 
@@ -109,13 +119,13 @@ func selectIdentifierIntpState(l *lexer) state {
 	l.accept(whitespace)
 
 	if l.hasPrefixI("FROM") {
-		return selectFromIntpState
+		return intp.selectFromIntpState
 	}
 
 	c := l.next()
 	if c == coma {
 		l.emit(TComma)
-		return selectIdentifierIntpState
+		return intp.selectIdentifierIntpState
 	}
 
 	// return StartIntpState
@@ -123,7 +133,7 @@ func selectIdentifierIntpState(l *lexer) state {
 	return nil
 }
 
-func selectFromIntpState(l *lexer) state {
+func (intp *Intp) selectFromIntpState(l *lexer) state {
 	l.start = l.pos
 	l.pos += 4
 	l.emit(TIntpFrom)
@@ -155,7 +165,7 @@ func selectFromIntpState(l *lexer) state {
 			}
 			if l.hasPrefixI("O") && l.hasPrefixI("OUTFILE") {
 				l.pos += 7
-				return selectFromIntoOutfileIntpState
+				return intp.selectFromIntoOutfileIntpState
 			}
 		}
 	}
@@ -171,7 +181,7 @@ func selectFromIntpState(l *lexer) state {
 	return nil
 }
 
-func selectFromIntoOutfileIntpState(l *lexer) state {
+func (intp *Intp) selectFromIntoOutfileIntpState(l *lexer) state {
 	l.emit(TIntpIntoOutfile)
 	l.start = l.pos
 

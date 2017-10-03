@@ -81,10 +81,11 @@ func interactive(tree sqlread.SummaryTree, buff io.ReaderAt) {
 	w := csv.NewWriter(os.Stdout)
 	sw := NewStdinWrap(os.Stdin)
 
+	intp := sqlread.Intp{}
 	for {
 		stdinlex, stdli := sqlread.Lex(sw)
 		go func() {
-			stdinlex.Run(sqlread.StartIntpState)
+			stdinlex.Run(intp.StartIntpState)
 		}()
 
 		qp := sqlread.NewQueryParser()
