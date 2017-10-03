@@ -2,6 +2,8 @@
 *.sql
 *.sql.sqlmap
 
+!/testfixtures/*.sql
+
 *.svg
 *.txt
 /cmd/sqlread/pprof.go
