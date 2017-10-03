@@ -40,8 +40,10 @@ func StartState(l *lexer) state {
 		return untilSemiStateBuilder(TSetFullStmt, StartState)
 	}
 
-	n, p := l.peek(10)
-	log.Println("peak ahead", string(p), n, p)
+	_, p := l.peek(1)
+	if p[0] != eof {
+		l.emit(TIllegal)
+	}
 
 	return nil
 }
