@@ -8,8 +8,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/davecgh/go-spew/spew"
-
 	"github.com/donatj/sqlread"
 	"github.com/donatj/sqlread/mapcache"
 )
