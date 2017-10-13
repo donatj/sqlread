@@ -143,8 +143,8 @@ func execQuery(tree sqlread.SummaryTree, qry sqlread.Query, buff io.ReaderAt, w 
 		}
 
 		if !found {
+			return fmt.Errorf("column `%s` not found", col)
 		}
-		return fmt.Errorf("column `%s` not found", col)
 	}
 	for _, loc := range tbl.DataLocs {
 		start := loc.Start.Pos
