@@ -198,7 +198,7 @@ func (intp *Intp) selectFromIntoOutfileIntpState(l *lexer) state {
 	l.emit(TString)
 
 	l.accept(whitespace)
-	l.pos = l.start
+	l.start = l.pos
 
 	c := l.next()
 	if c != semi {
