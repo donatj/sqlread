@@ -98,8 +98,6 @@ func interactive(tree sqlread.SummaryTree, buff io.ReaderAt) {
 			continue
 		}
 
-		spew.Dump(qp.Tree)
-
 	queryloop:
 		for _, qry := range qp.Tree.Queries {
 			tbl, tok := tree[qry.Table]
@@ -124,8 +122,6 @@ func interactive(tree sqlread.SummaryTree, buff io.ReaderAt) {
 					continue queryloop
 				}
 			}
-
-			spew.Dump(colind)
 
 			for _, loc := range tbl.DataLocs {
 				start := loc.Start.Pos
@@ -164,41 +160,44 @@ func interactive(tree sqlread.SummaryTree, buff io.ReaderAt) {
 		}
 
 		for i := uint(0); i < qp.Tree.ShowTables; i++ {
-			for cv, _ := range tree {
-				w.Write([]string{cv})
-			}
-
-			w.Flush()
+			showTables(tree, w)
 		}
 
 		for _, sctbl := range qp.Tree.ShowColumns {
-			tbl, tok := tree[sctbl]
-			if !tok {
-				log.Printf("table `%s` not found", sctbl)
+			if err := showColumns(tree, sctbl, w); err != nil {
+				log.Println(err)
 			}
-
-			for _, col := range tbl.Cols {
-				w.Write([]string{col.Name, col.Type})
-			}
-
-			w.Flush()
 		}
 
 		if qp.Tree.Quit {
 			return
 		}
 
-		// for {
-		// 	x, ok := <-stdli
-		// 	if !ok {
-		// 		break
-		// 	}
-
-		// 	spew.Dump(x)
-
-		// }
+		if intp.EOF {
+			break
+		}
 
 		sw.Flush()
 		log.Println("restarting lexer")
 	}
+}
+
+func showColumns(tree sqlread.SummaryTree, sctbl string, w *csv.Writer) error {
+	tbl, tok := tree[sctbl]
+	if !tok {
+		return fmt.Errorf("table `%s` not found", sctbl)
+	}
+	for _, col := range tbl.Cols {
+		w.Write([]string{col.Name, col.Type})
+	}
+	w.Flush()
+
+	return nil
+}
+
+func showTables(tree sqlread.SummaryTree, w *csv.Writer) {
+	for cv, _ := range tree {
+		w.Write([]string{cv})
+	}
+	w.Flush()
 }
