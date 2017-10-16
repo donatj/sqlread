@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/donatj/sqlread"
 	"github.com/donatj/sqlread/mapcache"
@@ -95,8 +96,23 @@ func interactive(tree sqlread.SummaryTree, buff io.ReaderAt) {
 		}
 
 		for _, qry := range qp.Tree.Queries {
-			if err := execQuery(tree, qry, buff, w); err != nil {
+			w2 := w
+			path := ""
+
+			if qry.Outfile != nil && *qry.Outfile != "" {
+				path = filepath.Clean(*qry.Outfile)
+				outfile, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY, 0644)
+				if err != nil {
+					log.Println(err)
+					continue
+				}
+
+				w2 = csv.NewWriter(outfile)
+			}
+			if err := execQuery(tree, qry, buff, w2); err != nil {
 				log.Println(err)
+			} else if path != "" {
+				log.Printf("written to `%s`", path)
 			}
 		}
 
