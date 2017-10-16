@@ -39,8 +39,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Println(*nocache)
-
 	if err == mapcache.ErrCacheMiss || *nocache {
 		l, li := sqlread.Lex(unbuff)
 		go func() {
