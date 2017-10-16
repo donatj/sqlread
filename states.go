@@ -263,7 +263,11 @@ func createTableExtra(l *lexer) state {
 		}
 
 		if c == semi {
-			l.start = l.pos - 1
+			l.rewind()
+			l.emit(TcreateTableExtraDetail)
+
+			l.start = l.pos
+			l.next()
 			l.emit(TSemi)
 			return StartState
 		}

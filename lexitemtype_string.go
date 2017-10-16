@@ -4,9 +4,9 @@ package sqlread
 
 import "fmt"
 
-const _lexItemType_name = "TIllegalTEofTSemiTCommaTCommentTNullTStringTNumberTIdentifierTDropTableFullStmtTLockTableFullStmtTUnlockTablesFullStmtTSetFullStmtTLParenTRParenTCreateTableTCreateTableDetailTColumnTypeTColumnSizeTColumnEnumValTColumnDetailsTInsertIntoTInsertValuesTIntpSelectTIntpStarTIntpFromTIntpIntoOutfileTIntpShowTablesTIntpShowColumnsTIntpQuit"
+const _lexItemType_name = "TIllegalTEofTSemiTCommaTCommentTNullTStringTNumberTIdentifierTDropTableFullStmtTLockTableFullStmtTUnlockTablesFullStmtTSetFullStmtTLParenTRParenTCreateTableTCreateTableDetailTcreateTableExtraDetailTColumnTypeTColumnSizeTColumnEnumValTColumnDetailsTInsertIntoTInsertValuesTIntpSelectTIntpStarTIntpFromTIntpIntoOutfileTIntpShowTablesTIntpShowColumnsTIntpQuit"
 
-var _lexItemType_index = [...]uint16{0, 8, 12, 17, 23, 31, 36, 43, 50, 61, 79, 97, 118, 130, 137, 144, 156, 174, 185, 196, 210, 224, 235, 248, 259, 268, 277, 293, 308, 324, 333}
+var _lexItemType_index = [...]uint16{0, 8, 12, 17, 23, 31, 36, 43, 50, 61, 79, 97, 118, 130, 137, 144, 156, 174, 197, 208, 219, 233, 247, 258, 271, 282, 291, 300, 316, 331, 347, 356}
 
 func (i lexItemType) String() string {
 	if i >= lexItemType(len(_lexItemType_index)-1) {
