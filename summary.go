@@ -43,14 +43,13 @@ func (t *SummaryParser) ParseStart(p *Parser) parseState {
 			return t.parseInsertIntoBuilder(c)
 		}
 
-		if isOfAny(c, TComment, TSemi, TDropTableFullStmt, TLockTableFullStmt, TUnlockTablesFullStmt, TSetFullStmt) {
+		skips := []lexItemType{TComment, TDelim, TSemi, TDropTableFullStmt, TLockTableFullStmt, TUnlockTablesFullStmt, TSetFullStmt}
+		if isOfAny(c, skips...) {
 			continue
 		}
 
-		p.errorUnexpectedLex(c,
-			TCreateTable,
-			TInsertInto,
-			TComment, TSemi, TDropTableFullStmt, TLockTableFullStmt, TUnlockTablesFullStmt, TSetFullStmt)
+		expects := append(skips, TCreateTable, TInsertInto)
+		p.errorUnexpectedLex(c, expects...)
 		break
 	}
 	return nil

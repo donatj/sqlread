@@ -36,6 +36,10 @@ func StartState(l *lexer) state {
 		return insertIntoTableState
 	}
 
+	if l.hasPrefix("DELIMITER ") { // TODO: Add delimiter awareness
+		return untilNewlineStateBuilder(TDelim, StartState)
+	}
+
 	if l.hasPrefix("SET ") {
 		return untilSemiStateBuilder(TSetFullStmt, StartState)
 	}
@@ -179,6 +183,25 @@ func untilSemiStateBuilder(emit lexItemType, ret state) state {
 		l.start = l.pos
 
 		if l.until(semi) {
+			l.rewind()
+			l.emit(emit)
+			l.start = l.pos
+			l.pos++
+			l.emit(TSemi)
+		} else {
+			l.emit(TIllegal)
+			return nil
+		}
+
+		return ret
+	}
+}
+
+func untilNewlineStateBuilder(emit lexItemType, ret state) state {
+	return func(l *lexer) state {
+		l.start = l.pos
+
+		if l.until('\n') {
 			l.rewind()
 			l.emit(emit)
 			l.start = l.pos
@@ -472,6 +495,8 @@ func eatIdentifier(l *lexer) bool {
 
 	log.Println("non-backtick identifiers not implemented yet at: ", l.pos)
 	l.emit(TIllegal)
+
+	// https://dev.mysql.com/doc/refman/5.7/en/identifiers.html
 
 	return false
 }

@@ -4,9 +4,9 @@ package sqlread
 
 import "fmt"
 
-const _lexItemType_name = "TIllegalTEofTSemiTCommaTCommentTNullTStringTNumberTIdentifierTDropTableFullStmtTLockTableFullStmtTUnlockTablesFullStmtTSetFullStmtTLParenTRParenTCreateTableTCreateTableDetailTcreateTableExtraDetailTColumnTypeTColumnSizeTColumnEnumValTColumnDetailsTInsertIntoTInsertValuesTIntpSelectTIntpStarTIntpFromTIntpIntoOutfileTIntpShowTablesTIntpShowColumnsTIntpQuit"
+const _lexItemType_name = "TIllegalTEofTSemiTCommaTCommentTDelimTNullTStringTNumberTIdentifierTDropTableFullStmtTLockTableFullStmtTUnlockTablesFullStmtTSetFullStmtTLParenTRParenTCreateTableTCreateTableDetailTcreateTableExtraDetailTColumnTypeTColumnSizeTColumnEnumValTColumnDetailsTInsertIntoTInsertValuesTIntpSelectTIntpStarTIntpFromTIntpIntoOutfileTIntpShowTablesTIntpShowColumnsTIntpQuit"
 
-var _lexItemType_index = [...]uint16{0, 8, 12, 17, 23, 31, 36, 43, 50, 61, 79, 97, 118, 130, 137, 144, 156, 174, 197, 208, 219, 233, 247, 258, 271, 282, 291, 300, 316, 331, 347, 356}
+var _lexItemType_index = [...]uint16{0, 8, 12, 17, 23, 31, 37, 42, 49, 56, 67, 85, 103, 124, 136, 143, 150, 162, 180, 203, 214, 225, 239, 253, 264, 277, 288, 297, 306, 322, 337, 353, 362}
 
 func (i lexItemType) String() string {
 	if i >= lexItemType(len(_lexItemType_index)-1) {
