@@ -16,6 +16,7 @@ const (
 	TComma
 
 	TComment
+	TDelim
 
 	TNull
 	TString
