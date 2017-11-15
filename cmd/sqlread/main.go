@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/avvmoto/buf-readerat"
 	"github.com/donatj/sqlread"
 	"github.com/donatj/sqlread/mapcache"
 )
@@ -34,6 +35,8 @@ func main() {
 		log.Fatal(err)
 	}
 
+	buff := bufra.NewBufReaderAt(unbuff, 100000000)
+
 	cache := mapcache.New(unbuff)
 	tree, err := cache.Get()
 	if err != nil && err != mapcache.ErrCacheMiss {
@@ -41,7 +44,7 @@ func main() {
 	}
 
 	if err == mapcache.ErrCacheMiss || *nocache {
-		l, li := sqlread.Lex(unbuff)
+		l, li := sqlread.Lex(buff)
 		go func() {
 			l.Run(sqlread.StartState)
 		}()
@@ -71,7 +74,7 @@ func main() {
 
 	_ = tree
 
-	interactive(tree, unbuff)
+	interactive(tree, buff)
 }
 
 func interactive(tree sqlread.SummaryTree, buff io.ReaderAt) {
