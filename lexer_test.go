@@ -2,7 +2,6 @@ package sqlread
 
 import (
 	"encoding/gob"
-	"fmt"
 	"os"
 	"reflect"
 	"testing"
@@ -36,7 +35,6 @@ func TestStartStateLexer(t *testing.T) {
 		return
 	}
 
-	fmt.Println("here")
 	g := gob.NewDecoder(fileExp)
 	expOut := []LexItem{}
 	g.Decode(&expOut)
