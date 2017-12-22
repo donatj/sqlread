@@ -7,4 +7,6 @@
 *.svg
 *.txt
 /cmd/sqlread/pprof.go
-sqlread
+/sqlread
+/release
+/cmd/sqlread/sqlread

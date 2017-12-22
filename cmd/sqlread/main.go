@@ -27,6 +27,7 @@ func init() {
 }
 
 func main() {
+	fmt.Println("sqlread build:", buildString)
 	// return
 	log.Println("starting initial pass")
 
