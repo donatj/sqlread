@@ -33,10 +33,10 @@ func (s *ReadlineWrap) ReadAt(b []byte, off int64) (int, error) {
 
 	for e+1 > s.end {
 		b2, err := s.rl.ReadSlice()
-		b2 = append(b2, '\n')
 		if err != nil {
 			return 0, err // n value here is questionable
 		}
+		b2 = append(b2, '\n')
 
 		n := len(b2)
 		s.end += int64(n)
