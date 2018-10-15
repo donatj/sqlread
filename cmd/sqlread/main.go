@@ -80,7 +80,7 @@ func main() {
 
 func interactive(tree sqlread.SummaryTree, buff io.ReaderAt) {
 	w := csv.NewWriter(os.Stdout)
-	sw := NewStdinWrap(os.Stdin)
+	sw := NewReadlineWrap()
 
 	intp := sqlread.Intp{}
 	for {
