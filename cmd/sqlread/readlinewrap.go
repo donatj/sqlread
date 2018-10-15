@@ -8,14 +8,13 @@ type ReadlineWrap struct {
 	rl   *readline.Instance
 	data []byte
 
-	// start int64 coming optimization
 	end int64
 }
 
 func NewReadlineWrap() *ReadlineWrap {
 	rl, err := readline.NewEx(&readline.Config{
 		Prompt: "> ",
-		// HistoryFile:            "/tmp/readline-multiline",
+
 		DisableAutoSaveHistory: true,
 	})
 	if err != nil {

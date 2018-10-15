@@ -8,7 +8,6 @@ type StdinWrap struct {
 	stdin io.Reader
 	data  []byte
 
-	// start int64 coming optimization
 	end int64
 }
 
@@ -33,15 +32,12 @@ func (s *StdinWrap) ReadAt(b []byte, off int64) (int, error) {
 
 		s.data = append(s.data, b2[:n]...)
 	}
-	// fmt.Printf("%#v\n", string(s.data))
 
 	i := 0
 	for a := off; a <= e; a++ {
-		// log.Println(a, s.data[a])
 		b[i] = s.data[a]
 		i++
 	}
-	// log.Println(b, off, "-", e, s.data)
 
 	return len(b), nil
 }
