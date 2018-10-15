@@ -1,18 +1,18 @@
 package main
 
 import (
-	"os"
+	"io"
 )
 
 type StdinWrap struct {
-	stdin *os.File
+	stdin io.Reader
 	data  []byte
 
 	// start int64 coming optimization
 	end int64
 }
 
-func NewStdinWrap(o *os.File) *StdinWrap {
+func NewStdinWrap(o io.Reader) *StdinWrap {
 	return &StdinWrap{
 		stdin: o,
 		data:  []byte{},
