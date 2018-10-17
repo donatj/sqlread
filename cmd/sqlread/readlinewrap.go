@@ -8,6 +8,8 @@ type ReadlineWrap struct {
 	rl   *readline.Instance
 	data []byte
 
+	maxread int64
+
 	end int64
 }
 
@@ -29,6 +31,10 @@ func NewReadlineWrap() *ReadlineWrap {
 
 func (s *ReadlineWrap) ReadAt(b []byte, off int64) (int, error) {
 	e := off + int64(len(b)) - 1
+
+	if e > s.maxread {
+		s.maxread = e
+	}
 
 	for e+1 > s.end {
 		b2, err := s.rl.ReadSlice()
@@ -53,6 +59,11 @@ func (s *ReadlineWrap) ReadAt(b []byte, off int64) (int, error) {
 }
 
 func (s *ReadlineWrap) Flush() {
+
+	// log.Println("max", string(s.data[:s.maxread+1]))
+	s.rl.SaveHistory(string(s.data[:s.maxread+1]))
+
 	s.end = 0
+	s.maxread = 0
 	s.data = []byte{}
 }
