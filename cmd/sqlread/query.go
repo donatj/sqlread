@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"sort"
 
 	"github.com/donatj/sqlread"
 )
@@ -84,8 +85,17 @@ func showColumns(tree sqlread.SummaryTree, sctbl string, w DataWriter) error {
 }
 
 func showTables(tree sqlread.SummaryTree, w DataWriter) {
-	for cv, _ := range tree {
-		w.Write([]string{cv})
+	tables := make([]string, len(tree))
+	i := 0
+	for cv := range tree {
+		tables[i] = cv
+		i++
 	}
+
+	sort.Strings(tables)
+	for _, t := range tables {
+		w.Write([]string{t})
+	}
+
 	w.Flush()
 }
