@@ -4,7 +4,7 @@
 [![GoDoc](https://godoc.org/github.com/donatj/sqlread?status.svg)](https://godoc.org/github.com/donatj/sqlread)
 [![Build Status](https://travis-ci.org/donatj/sqlread.svg?branch=master)](https://travis-ci.org/donatj/sqlread)
 
-SQL Dump Parser - Currently a very fragile toy sql dump parser.
+sqlread is a mysql dump parser that allows you to query MySQL dumps directly without loading them into MySQL, and export specific tables from said dumps.
 
 Currently very picky and only likes `mysqldump` generated output dumps. Milage may vary on dumps created with other tools like Navicat. Compatability is a work in progress.
 
