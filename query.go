@@ -216,6 +216,10 @@ func (q *QueryParser) parseSelectIntoOutfileBuilder(qry *Query) parseState {
 		qry.Outfile = &s
 
 		d, ok := p.scan()
+		if !ok {
+			p.errorUnexpectedEOF()
+			return nil
+		}
 		if d.Type == TSemi {
 			q.Tree.Queries = append(q.Tree.Queries, *qry)
 			return nil
