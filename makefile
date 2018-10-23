@@ -24,5 +24,5 @@ release:
 	$(MAKE) clean
 	$(MAKE) build
 
-	zip release/sqlread.darwin_amd64.$(HEAD).zip release/darwin64/sqlread
-	zip release/sqlread.linux_amd64.$(HEAD).zip release/linux64/sqlread
+	zip -9 release/sqlread.darwin_amd64.$(HEAD).zip release/darwin64/sqlread
+	zip -9 release/sqlread.linux_amd64.$(HEAD).zip release/linux64/sqlread
