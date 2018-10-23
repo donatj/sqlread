@@ -2,7 +2,7 @@
 
 package sqlread
 
-import "fmt"
+import "strconv"
 
 const _lexItemType_name = "TIllegalTEofTSemiTCommaTCommentTDelimTNullTStringTNumberTIdentifierTDropTableFullStmtTLockTableFullStmtTUnlockTablesFullStmtTSetFullStmtTLParenTRParenTCreateTableTCreateTableDetailTcreateTableExtraDetailTColumnTypeTColumnSizeTColumnEnumValTColumnDetailsTInsertIntoTInsertValuesTIntpSelectTIntpStarTIntpFromTIntpIntoOutfileTIntpShowTablesTIntpShowColumnsTIntpQuit"
 
@@ -10,7 +10,7 @@ var _lexItemType_index = [...]uint16{0, 8, 12, 17, 23, 31, 37, 42, 49, 56, 67, 8
 
 func (i lexItemType) String() string {
 	if i >= lexItemType(len(_lexItemType_index)-1) {
-		return fmt.Sprintf("lexItemType(%d)", i)
+		return "lexItemType(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
 	return _lexItemType_name[_lexItemType_index[i]:_lexItemType_index[i+1]]
 }
