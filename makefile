@@ -20,9 +20,6 @@ linux64:
 	env GOOS=linux GOARCH=amd64 go build -ldflags $(LDFLAGS) -o release/linux64/sqlread ./cmd/sqlread
 
 .PHONY: release
-release:
-	$(MAKE) clean
-	$(MAKE) build
-
+release: clean build
 	zip -9 release/sqlread.darwin_amd64.$(HEAD).zip release/darwin64/sqlread
 	zip -9 release/sqlread.linux_amd64.$(HEAD).zip release/linux64/sqlread
