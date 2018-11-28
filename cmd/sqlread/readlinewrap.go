@@ -1,6 +1,8 @@
 package main
 
 import (
+	"io"
+
 	"github.com/chzyer/readline"
 )
 
@@ -38,7 +40,9 @@ func (s *ReadlineWrap) ReadAt(b []byte, off int64) (int, error) {
 
 	for e+1 > s.end {
 		b2, err := s.rl.ReadSlice()
-		if err != nil {
+		if err == readline.ErrInterrupt {
+			return 0, io.EOF
+		} else if err != nil {
 			return 0, err // n value here is questionable
 		}
 		b2 = append(b2, '\n')
