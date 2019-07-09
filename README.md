@@ -9,6 +9,14 @@ sqlread is a mysql dump parser that allows you to query MySQL dumps directly wit
 
 Currently very picky and only likes `mysqldump` generated output dumps. Milage may vary on dumps created with other tools like Navicat. Compatability is a work in progress.
 
+## Todo:
+
+While the code is quite usable and useful, I still have a ways to go.
+
+- [ ] Query fields without backticks - currently all fields must be wrapped in backticks.
+- [ ] Basic WHERE support - not currently implemented.
+- [ ] Optimization of heavily `\`'d string parsing
+
 ## Installation
 
 ### From Source
