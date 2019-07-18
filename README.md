@@ -22,7 +22,7 @@ While the code is quite usable and useful, I still have a ways to go.
 ### From Source
 
 ```bash
-go get -u -v github.com/donatj/hookah/cmd/sqlread
+go get -u -v github.com/donatj/sqlread/cmd/sqlread
 ```
 
 ### Precompiled Binaries
