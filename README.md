@@ -13,8 +13,10 @@ Currently very picky and only likes `mysqldump` generated output dumps. Milage m
 
 While the code is quite usable and useful, I still have a ways to go.
 
-- [ ] Query fields without backticks - currently all fields must be wrapped in backticks.
-- [ ] Basic WHERE support - not currently implemented.
+- [ ] Query fields without backticks - currently all fields **must** be wrapped in backticks.
+- [ ] General Expression Support
+  - [ ] Basic WHERE support
+  - [ ] Basic ORDER BY support
 - [ ] Optimization of heavily `\`'d string parsing
 
 ## Installation
