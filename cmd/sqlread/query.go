@@ -77,7 +77,10 @@ func showColumns(tree sqlread.SummaryTree, sctbl string, w DataWriter) error {
 		return fmt.Errorf("table `%s` not found", sctbl)
 	}
 	for _, col := range tbl.Cols {
-		w.Write([]string{col.Name, col.Type})
+		err := w.Write([]string{col.Name, col.Type})
+		if err != nil {
+			return err
+		}
 	}
 	w.Flush()
 
@@ -91,9 +94,15 @@ func showCreateTable(tree sqlread.SummaryTree, sctbl string, buff io.ReaderAt, w
 	}
 
 	data := make([]byte, tbl.End.Pos-tbl.Start.Pos)
-	buff.ReadAt(data, tbl.Start.Pos)
+	_, err := buff.ReadAt(data, tbl.Start.Pos)
+	if err != nil {
+		return err
+	}
 
-	w.Write([]string{string(data)})
+	err = w.Write([]string{string(data)})
+	if err != nil {
+		return err
+	}
 	w.Flush()
 
 	return nil
