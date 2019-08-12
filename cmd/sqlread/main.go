@@ -8,7 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/avvmoto/buf-readerat"
+	bufra "github.com/avvmoto/buf-readerat"
 	"github.com/donatj/sqlread"
 	"github.com/donatj/sqlread/mapcache"
 )
