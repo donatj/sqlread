@@ -7,10 +7,13 @@ type Query struct {
 }
 
 type QueryTree struct {
-	Queries     []Query
-	ShowTables  uint
-	ShowColumns []string
-	Quit        bool
+	Queries []Query
+
+	ShowTables       uint
+	ShowColumns      []string
+	ShowCreateTables []string
+
+	Quit bool
 }
 
 type QueryParser struct {
@@ -45,6 +48,10 @@ func (q *QueryParser) ParseStart(p *Parser) parseState {
 
 		if isOfAny(c, TIntpShowColumns) {
 			return q.parseShowColumns
+		}
+
+		if isOfAny(c, TIntpShowCreateTable) {
+			return q.parseShowCreateTable
 		}
 
 		if isOfAny(c, TIntpQuit) {
@@ -112,6 +119,22 @@ func (q *QueryParser) parseShowColumns(p *Parser) parseState {
 	}
 
 	q.Tree.ShowColumns = append(q.Tree.ShowColumns, identValue(y))
+
+	return q.ParseStart
+}
+
+func (q *QueryParser) parseShowCreateTable(p *Parser) parseState {
+	y, ok := p.scan()
+	if !ok {
+		p.errorUnexpectedEOF()
+		return nil
+	}
+	if !isOfAny(y, TIdentifier) {
+		p.errorUnexpectedLex(y, TIdentifier)
+		return nil
+	}
+
+	q.Tree.ShowCreateTables = append(q.Tree.ShowCreateTables, identValue(y))
 
 	return q.ParseStart
 }
