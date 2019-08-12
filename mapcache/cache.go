@@ -23,6 +23,7 @@ func New(sqlfile *os.File) *MapCache {
 }
 
 var (
+	// ErrCacheMiss is an error when a valid cache is not found
 	ErrCacheMiss = errors.New("cache miss")
 )
 
