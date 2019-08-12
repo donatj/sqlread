@@ -8,6 +8,10 @@ import (
 	"github.com/donatj/sqlread"
 )
 
+// CacheVersion is incremented when the structure of the cache changes
+// such that it is no longer compatible.
+const CacheVersion = 1
+
 type MapCache struct {
 	sqlfile *os.File
 }
@@ -19,6 +23,7 @@ func New(sqlfile *os.File) *MapCache {
 }
 
 var (
+	// ErrCacheMiss is an error when a valid cache is not found
 	ErrCacheMiss = errors.New("cache miss")
 )
 
@@ -43,6 +48,10 @@ func (m *MapCache) Get() (sqlread.SummaryTree, error) {
 		return nil, ErrCacheMiss
 	}
 
+	if v.Version != CacheVersion {
+		return nil, ErrCacheMiss
+	}
+
 	return v.Tree, nil
 }
 
@@ -55,6 +64,7 @@ func (m *MapCache) Store(s sqlread.SummaryTree) error {
 
 	e := json.NewEncoder(cf)
 	err = e.Encode(cacheInfo{
+		Version:  CacheVersion,
 		FileSize: m.getFileSize(),
 		Tree:     s,
 	})
@@ -80,6 +90,7 @@ func (m *MapCache) getFileSize() int64 {
 }
 
 type cacheInfo struct {
+	Version  int
 	FileSize int64
 	Tree     sqlread.SummaryTree
 }

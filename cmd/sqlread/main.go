@@ -8,7 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/avvmoto/buf-readerat"
+	bufra "github.com/avvmoto/buf-readerat"
 	"github.com/donatj/sqlread"
 	"github.com/donatj/sqlread/mapcache"
 )
@@ -125,6 +125,12 @@ func interactive(tree sqlread.SummaryTree, buff io.ReaderAt) {
 
 		for _, sctbl := range qp.Tree.ShowColumns {
 			if err := showColumns(tree, sctbl, w); err != nil {
+				log.Println(err)
+			}
+		}
+
+		for _, sctbl := range qp.Tree.ShowCreateTables {
+			if err := showCreateTable(tree, sctbl, buff, w); err != nil {
 				log.Println(err)
 			}
 		}

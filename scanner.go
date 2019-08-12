@@ -51,6 +51,7 @@ const (
 
 	TIntpShowTables
 	TIntpShowColumns
+	TIntpShowCreateTable
 
 	TIntpQuit
 )

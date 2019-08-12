@@ -16,6 +16,8 @@ type SummaryTable struct {
 	Create   LexItem
 	Cols     []SummaryColumn
 	DataLocs []SummaryDataLoc
+
+	SummaryDataLoc
 }
 
 type SummaryParser struct {
@@ -36,7 +38,7 @@ func (t *SummaryParser) ParseStart(p *Parser) parseState {
 		}
 
 		if isOfAny(c, TCreateTable) {
-			return t.parseCreate
+			return t.parseCreateBuilder(c)
 		}
 
 		if isOfAny(c, TInsertInto) {
@@ -55,53 +57,62 @@ func (t *SummaryParser) ParseStart(p *Parser) parseState {
 	return nil
 }
 
-func (t *SummaryParser) parseCreate(p *Parser) parseState {
-	c, ok := p.scan()
-	if !ok {
-		p.errorUnexpectedEOF()
-		return nil
-	}
-	if c.Type != TIdentifier {
-		p.errorUnexpectedLex(c, TIdentifier)
-		return nil
-	}
-
-	if _, ok := t.Tree[c.Val]; !ok {
-		t.Tree[c.Val] = SummaryTable{
-			Create: c,
-			Cols:   make([]SummaryColumn, 0),
-		}
-	}
-
-	for {
-		x, ok := p.scanUntil(TIdentifier, TSemi)
+func (t *SummaryParser) parseCreateBuilder(start LexItem) parseState {
+	return func(p *Parser) parseState {
+		c, ok := p.scan()
 		if !ok {
 			p.errorUnexpectedEOF()
 			return nil
 		}
-
-		if x.Type == TSemi {
-			return t.ParseStart
-		}
-
-		y, ok := p.scan()
-		if !ok {
-			p.errorUnexpectedEOF()
-			return nil
-		}
-		if y.Type != TColumnType {
-			p.errorUnexpectedLex(y, TColumnType)
+		if c.Type != TIdentifier {
+			p.errorUnexpectedLex(c, TIdentifier)
 			return nil
 		}
 
-		v := t.Tree[c.Val]
+		if _, ok := t.Tree[c.Val]; !ok {
+			t.Tree[c.Val] = SummaryTable{
+				Create: c,
+				Cols:   make([]SummaryColumn, 0),
+				SummaryDataLoc: SummaryDataLoc{
+					Start: start,
+				},
+			}
+		}
 
-		v.Cols = append(v.Cols, SummaryColumn{
-			Name: x.Val,
-			Type: y.Val,
-		})
+		for {
+			x, ok := p.scanUntil(TIdentifier, TSemi)
+			if !ok {
+				p.errorUnexpectedEOF()
+				return nil
+			}
 
-		t.Tree[c.Val] = v
+			if x.Type == TSemi {
+				et := t.Tree[c.Val]
+				et.End = x
+				t.Tree[c.Val] = et
+
+				return t.ParseStart
+			}
+
+			y, ok := p.scan()
+			if !ok {
+				p.errorUnexpectedEOF()
+				return nil
+			}
+			if y.Type != TColumnType {
+				p.errorUnexpectedLex(y, TColumnType)
+				return nil
+			}
+
+			v := t.Tree[c.Val]
+
+			v.Cols = append(v.Cols, SummaryColumn{
+				Name: x.Val,
+				Type: y.Val,
+			})
+
+			t.Tree[c.Val] = v
+		}
 	}
 }
 

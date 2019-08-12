@@ -26,6 +26,9 @@ func (intp *Intp) StartIntpState(l *lexer) state {
 		if l.hasPrefixI("COLUMNS") {
 			return intp.showColumnsIntpState
 		}
+		if l.hasPrefixI("CREATE") {
+			return intp.showCreateTableIntpState
+		}
 
 		l.emit(TIllegal)
 		return nil
@@ -37,6 +40,50 @@ func (intp *Intp) StartIntpState(l *lexer) state {
 
 	if l.hasPrefixI("S") && l.hasPrefixI("SELECT") {
 		return intp.selectIntpState
+	}
+
+	return nil
+}
+
+func (intp *Intp) showCreateTableIntpState(l *lexer) state {
+	l.pos += 6
+
+	if l.accept(whitespace) < 1 {
+		l.emit(TIllegal)
+		return nil
+	}
+
+	l.start = l.pos
+
+	if !l.hasPrefixI("TABLE") {
+		l.emit(TIllegal)
+		return nil
+	}
+	l.pos += 5
+	l.emit(TIntpShowCreateTable)
+	// TODO emit non-existing T_TABLE?
+
+	if l.accept(whitespace) < 1 {
+		l.emit(TIllegal)
+		return nil
+	}
+
+	l.start = l.pos
+
+	if eatIdentifier(l) {
+		l.emit(TIdentifier)
+	} else {
+		l.emit(TIllegal)
+		return nil
+	}
+
+	l.accept(whitespace)
+	l.start = l.pos
+
+	c := l.next()
+	if c != semi {
+		l.emit(TIllegal)
+		return nil
 	}
 
 	return nil
