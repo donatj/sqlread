@@ -107,7 +107,7 @@ func (q *QueryParser) parseShowColumns(p *Parser) parseState {
 		return nil
 	}
 	if !isOfAny(y, TIdentifier) {
-		p.errorUnexpectedLex(x, TIdentifier)
+		p.errorUnexpectedLex(y, TIdentifier)
 		return nil
 	}
 
