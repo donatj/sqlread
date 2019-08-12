@@ -87,7 +87,7 @@ func (t *SummaryParser) parseCreateBuilder(start LexItem) parseState {
 			}
 
 			if x.Type == TSemi {
-				et, _ := t.Tree[c.Val]
+				et := t.Tree[c.Val]
 				et.End = x
 				t.Tree[c.Val] = et
 
