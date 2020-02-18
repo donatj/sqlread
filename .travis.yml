@@ -4,3 +4,5 @@ go:
   - "1.12"
   - "1.13"  
   - tip
+script:
+  - env GO111MODULE=on make build test
