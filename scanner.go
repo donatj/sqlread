@@ -54,6 +54,9 @@ const (
 	TIntpShowCreateTable
 
 	TIntpQuit
+
+	TBeginFullStmt
+	TCommitFullStmt
 )
 
 type LexItem struct {

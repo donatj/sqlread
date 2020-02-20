@@ -45,7 +45,7 @@ func (t *SummaryParser) ParseStart(p *Parser) parseState {
 			return t.parseInsertIntoBuilder(c)
 		}
 
-		skips := []lexItemType{TComment, TDelim, TSemi, TDropTableFullStmt, TLockTableFullStmt, TUnlockTablesFullStmt, TSetFullStmt}
+		skips := []lexItemType{TComment, TDelim, TSemi, TDropTableFullStmt, TLockTableFullStmt, TUnlockTablesFullStmt, TSetFullStmt, TBeginFullStmt, TCommitFullStmt}
 		if isOfAny(c, skips...) {
 			continue
 		}

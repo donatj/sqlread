@@ -44,6 +44,15 @@ func StartState(l *lexer) state {
 		return untilSemiStateBuilder(TSetFullStmt, StartState)
 	}
 
+	if l.hasPrefix("BEGIN") {
+		log.Println("begin")
+		return untilSemiStateBuilder(TBeginFullStmt, StartState)
+	}
+
+	if l.hasPrefix("COMMIT") {
+		return untilSemiStateBuilder(TCommitFullStmt, StartState)
+	}
+
 	_, p := l.peek(1)
 	if p[0] != eof {
 		l.emit(TIllegal)

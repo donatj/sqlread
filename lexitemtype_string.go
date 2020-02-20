@@ -41,11 +41,13 @@ func _() {
 	_ = x[TIntpShowColumns-30]
 	_ = x[TIntpShowCreateTable-31]
 	_ = x[TIntpQuit-32]
+	_ = x[TBeginFullStmt-33]
+	_ = x[TCommitFullStmt-34]
 }
 
-const _lexItemType_name = "TIllegalTEofTSemiTCommaTCommentTDelimTNullTStringTNumberTIdentifierTDropTableFullStmtTLockTableFullStmtTUnlockTablesFullStmtTSetFullStmtTLParenTRParenTCreateTableTCreateTableDetailTcreateTableExtraDetailTColumnTypeTColumnSizeTColumnEnumValTColumnDetailsTInsertIntoTInsertValuesTIntpSelectTIntpStarTIntpFromTIntpIntoOutfileTIntpShowTablesTIntpShowColumnsTIntpShowCreateTableTIntpQuit"
+const _lexItemType_name = "TIllegalTEofTSemiTCommaTCommentTDelimTNullTStringTNumberTIdentifierTDropTableFullStmtTLockTableFullStmtTUnlockTablesFullStmtTSetFullStmtTLParenTRParenTCreateTableTCreateTableDetailTcreateTableExtraDetailTColumnTypeTColumnSizeTColumnEnumValTColumnDetailsTInsertIntoTInsertValuesTIntpSelectTIntpStarTIntpFromTIntpIntoOutfileTIntpShowTablesTIntpShowColumnsTIntpShowCreateTableTIntpQuitTBeginFullStmtTCommitFullStmt"
 
-var _lexItemType_index = [...]uint16{0, 8, 12, 17, 23, 31, 37, 42, 49, 56, 67, 85, 103, 124, 136, 143, 150, 162, 180, 203, 214, 225, 239, 253, 264, 277, 288, 297, 306, 322, 337, 353, 373, 382}
+var _lexItemType_index = [...]uint16{0, 8, 12, 17, 23, 31, 37, 42, 49, 56, 67, 85, 103, 124, 136, 143, 150, 162, 180, 203, 214, 225, 239, 253, 264, 277, 288, 297, 306, 322, 337, 353, 373, 382, 396, 411}
 
 func (i lexItemType) String() string {
 	if i >= lexItemType(len(_lexItemType_index)-1) {
