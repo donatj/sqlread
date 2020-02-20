@@ -413,6 +413,10 @@ func createTableParamDetailsState(l *lexer) state {
 	l.start = l.pos
 	for {
 		c := l.next()
+		if c == eof {
+			l.emit(TIllegal)
+			return nil
+		}
 
 		if c == coma || c == rprn {
 			l.rewind()
