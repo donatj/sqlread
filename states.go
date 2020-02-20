@@ -171,7 +171,11 @@ func blockCommentStateBuilder(ret state) state {
 				l.pos += 2
 				break
 			}
-			l.next()
+			c := l.next()
+			if c == eof {
+				l.emit(TIllegal)
+				return nil
+			}
 		}
 
 		return ret
@@ -252,6 +256,10 @@ func createTableDetailState(l *lexer) state {
 	o := 0
 	for {
 		c := l.next()
+		if c == eof {
+			l.emit(TIllegal)
+			return nil
+		}
 
 		if c == lprn {
 			o++
@@ -276,6 +284,10 @@ func createTableExtra(l *lexer) state {
 	l.start = l.pos
 	for {
 		c := l.next()
+		if c == eof {
+			l.emit(TIllegal)
+			return nil
+		}
 
 		if l.hasPrefix("COMMENT=") {
 			l.pos += 8
