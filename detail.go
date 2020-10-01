@@ -56,7 +56,7 @@ func (d *InsertDetailParser) ParseStart(p *Parser) parseState {
 		case TNumber:
 			row = append(row, v.Val)
 		case TNull:
-			row = append(row, string(0)) // investigate
+			row = append(row, "\u0000") // investigate
 		case TComma:
 			d.Out <- row
 			row = []string{}
