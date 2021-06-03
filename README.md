@@ -7,7 +7,7 @@
 
 sqlread is a mysql dump parser that allows you to query MySQL dumps directly without loading them into MySQL, and export specific tables from said dumps.
 
-Currently very picky and only likes `mysqldump` generated output dumps. Milage may vary on dumps created with other tools like Navicat. Compatability is a work in progress.
+Currently very picky and only likes `mysqldump` generated output dumps. Mileage may vary on dumps created with other tools such as Navicat. Compatibility is a work in progress.
 
 ## Todo:
 
@@ -29,7 +29,7 @@ go get -u -v github.com/donatj/sqlread/cmd/sqlread
 
 ### Precompiled Binaries
 
-Availible on the [Releases](https://github.com/donatj/sqlread/releases) page currently for Linux and macOS.
+Available on the [Releases](https://github.com/donatj/sqlread/releases) page currently for Linux and macOS.
 
 ## Example usage
 
