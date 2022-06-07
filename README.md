@@ -24,7 +24,7 @@ While the code is quite usable and useful, I still have a ways to go.
 ### From Source
 
 ```bash
-go get -u -v github.com/donatj/sqlread/cmd/sqlread
+go install github.com/donatj/sqlread/cmd/sqlread@latest
 ```
 
 ### Precompiled Binaries
