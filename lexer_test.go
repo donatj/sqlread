@@ -37,7 +37,11 @@ func TestStartStateLexer(t *testing.T) {
 
 	g := gob.NewDecoder(fileExp)
 	expOut := []LexItem{}
-	g.Decode(&expOut)
+	err = g.Decode(&expOut)
+	if err != nil {
+		t.Error(err)
+		return
+	}
 
 	if !reflect.DeepEqual(out, expOut) {
 		t.Error("did not tokenize correctly")

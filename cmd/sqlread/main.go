@@ -58,7 +58,10 @@ func main() {
 		}
 
 		if !*nocache {
-			cache.Store(sp.Tree)
+			err := cache.Store(sp.Tree)
+			if err != nil {
+				log.Printf("error storing cache: %s", err)
+			}
 		}
 
 		tree = sp.Tree
