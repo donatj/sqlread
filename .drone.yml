@@ -1,8 +1,0 @@
-kind: pipeline
-name: default
-
-steps:
-- name: build
-  image: golang
-  commands:
-  - env GO111MODULE=on make build test
