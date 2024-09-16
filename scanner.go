@@ -33,7 +33,7 @@ const (
 
 	TCreateTable
 	TCreateTableDetail
-	TcreateTableExtraDetail
+	TCreateTableExtraDetail
 
 	TColumnType
 	TColumnSize

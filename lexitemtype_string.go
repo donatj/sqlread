@@ -26,7 +26,7 @@ func _() {
 	_ = x[TRParen-15]
 	_ = x[TCreateTable-16]
 	_ = x[TCreateTableDetail-17]
-	_ = x[TcreateTableExtraDetail-18]
+	_ = x[TCreateTableExtraDetail-18]
 	_ = x[TColumnType-19]
 	_ = x[TColumnSize-20]
 	_ = x[TColumnEnumVal-21]
@@ -45,7 +45,7 @@ func _() {
 	_ = x[TCommitFullStmt-34]
 }
 
-const _lexItemType_name = "TIllegalTEofTSemiTCommaTCommentTDelimTNullTStringTNumberTIdentifierTDropTableFullStmtTLockTableFullStmtTUnlockTablesFullStmtTSetFullStmtTLParenTRParenTCreateTableTCreateTableDetailTcreateTableExtraDetailTColumnTypeTColumnSizeTColumnEnumValTColumnDetailsTInsertIntoTInsertValuesTIntpSelectTIntpStarTIntpFromTIntpIntoOutfileTIntpShowTablesTIntpShowColumnsTIntpShowCreateTableTIntpQuitTBeginFullStmtTCommitFullStmt"
+const _lexItemType_name = "TIllegalTEofTSemiTCommaTCommentTDelimTNullTStringTNumberTIdentifierTDropTableFullStmtTLockTableFullStmtTUnlockTablesFullStmtTSetFullStmtTLParenTRParenTCreateTableTCreateTableDetailTCreateTableExtraDetailTColumnTypeTColumnSizeTColumnEnumValTColumnDetailsTInsertIntoTInsertValuesTIntpSelectTIntpStarTIntpFromTIntpIntoOutfileTIntpShowTablesTIntpShowColumnsTIntpShowCreateTableTIntpQuitTBeginFullStmtTCommitFullStmt"
 
 var _lexItemType_index = [...]uint16{0, 8, 12, 17, 23, 31, 37, 42, 49, 56, 67, 85, 103, 124, 136, 143, 150, 162, 180, 203, 214, 225, 239, 253, 264, 277, 288, 297, 306, 322, 337, 353, 373, 382, 396, 411}
 
