@@ -113,8 +113,20 @@ func insertRowState(l *lexer) state {
 	l.start = l.pos
 	for {
 		c := l.next()
-
 		if in(c, numbers) || c == dash {
+			if c == '0' {
+				_, p := l.peek(1)
+				if p[0] == 'x' {
+					l.rewind()
+					if eatHexNumber(l) {
+						l.emit(THexLiteral)
+						break
+					} else {
+						goto illegal
+					}
+				}
+			}
+
 			l.rewind()
 			if eatNumber(l) {
 				l.emit(TNumber)
@@ -132,6 +144,7 @@ func insertRowState(l *lexer) state {
 			break
 		}
 
+	illegal:
 		l.emit(TIllegal)
 		return nil
 	}
@@ -464,6 +477,21 @@ func eatNumber(l *lexer) bool {
 	}
 
 	return n1+n2 > 0
+}
+
+func eatHexNumber(l *lexer) bool {
+	if l.hasPrefix("0x") {
+		l.pos += 2
+	} else {
+		return false
+	}
+
+	n := l.accept(hexNumbers)
+	if n == 0 {
+		return false
+	}
+
+	return n > 0
 }
 
 func eatString(l *lexer) bool {

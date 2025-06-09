@@ -21,6 +21,7 @@ const (
 	TNull
 	TString
 	TNumber
+	THexLiteral
 	TIdentifier
 
 	TDropTableFullStmt
@@ -140,6 +141,7 @@ var (
 	whitespace = []byte(" \t\r\n")
 	sep        = []byte(" \t\r\n;")
 	numbers    = []byte("0123456789")
+	hexNumbers = []byte("0123456789abcdefABCDEF")
 )
 
 func (l *lexer) Run(start state) {
