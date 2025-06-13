@@ -443,3 +443,184 @@ func TestLexer_HasPrefix(t *testing.T) {
 		t.Error("Expected hasPrefixI to be case-insensitive")
 	}
 }
+
+func TestLexer_AcceptUnicodeRange(t *testing.T) {
+	tests := []struct {
+		name      string
+		input     string
+		startRune rune
+		endRune   rune
+		expected  int
+	}{
+		{
+			name:      "ASCII characters in range",
+			input:     "abc",
+			startRune: 'a',
+			endRune:   'z',
+			expected:  3,
+		},
+		{
+			name:      "ASCII characters partially in range",
+			input:     "abc123",
+			startRune: 'a',
+			endRune:   'z',
+			expected:  3,
+		},
+		{
+			name:      "ASCII characters outside range",
+			input:     "123",
+			startRune: 'a',
+			endRune:   'z',
+			expected:  0,
+		},
+		{
+			name:      "Empty input",
+			input:     "",
+			startRune: 'a',
+			endRune:   'z',
+			expected:  0,
+		},
+		{
+			name:      "Latin-1 Supplement characters",
+			input:     "éèê",
+			startRune: 0x00E0, // à
+			endRune:   0x00FF, // ÿ
+			expected:  3,
+		},
+		{
+			name:      "Mixed Latin-1 and ASCII",
+			input:     "aéb",
+			startRune: 0x00E0, // à
+			endRune:   0x00FF, // ÿ
+			expected:  0, // The function stops at the first character outside the range
+		},
+		{
+			name:      "CJK characters",
+			input:     "你好世界",
+			startRune: 0x4E00, // CJK Unified Ideographs start
+			endRune:   0x9FFF, // CJK Unified Ideographs end
+			expected:  4,
+		},
+		{
+			name:      "Mixed CJK and ASCII",
+			input:     "Hello你好",
+			startRune: 0x4E00, // CJK Unified Ideographs start
+			endRune:   0x9FFF, // CJK Unified Ideographs end
+			expected:  0, // The function stops at the first character outside the range
+		},
+		{
+			name:      "Invalid UTF-8 sequence",
+			input:     string([]byte{0xF0, 0x28, 0x8C, 0xBC}), // Invalid 4-byte sequence
+			startRune: 0x4E00,
+			endRune:   0x9FFF,
+			expected:  0,
+		},
+		{
+			name:      "Truncated UTF-8 sequence",
+			input:     string([]byte{0xE0, 0xA4}), // Incomplete 3-byte sequence
+			startRune: 0x4E00,
+			endRune:   0x9FFF,
+			expected:  0,
+		},
+		{
+			name:      "Emoji characters",
+			input:     "😀😁😂",
+			startRune: 0x1F600, // Emoticons block start
+			endRune:   0x1F64F, // Emoticons block end
+			expected:  3,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			reader := strings.NewReader(tt.input)
+			l, _ := Lex(reader)
+
+			// Create a state function that calls acceptUnicodeRange
+			stateFn := func(l *lexer) state {
+				count := l.acceptUnicodeRange(tt.startRune, tt.endRune)
+				if count != tt.expected {
+					t.Errorf("Expected count %d, got %d", tt.expected, count)
+				}
+				return nil
+			}
+
+			// Run the lexer with our state function
+			l.Run(stateFn)
+		})
+	}
+}
+
+// Test for edge cases and specific behaviors of acceptUnicodeRange
+func TestLexer_AcceptUnicodeRange_EdgeCases(t *testing.T) {
+	// Test that the function correctly rewinds when encountering characters outside the range
+	t.Run("Rewind behavior", func(t *testing.T) {
+		input := "abc123"
+		reader := strings.NewReader(input)
+		l, _ := Lex(reader)
+
+		// Accept only 'a' to 'c'
+		count := l.acceptUnicodeRange('a', 'c')
+		if count != 3 {
+			t.Errorf("Expected count 3, got %d", count)
+		}
+
+		// The position should be at '1' now
+		next := l.next()
+		if next != '1' {
+			t.Errorf("Expected next character to be '1', got %c", next)
+		}
+	})
+
+	// Test that the function handles EOF correctly
+	t.Run("EOF handling", func(t *testing.T) {
+		input := "abc"
+		reader := strings.NewReader(input)
+		l, _ := Lex(reader)
+
+		// Accept 'a' to 'z'
+		count := l.acceptUnicodeRange('a', 'z')
+		if count != 3 {
+			t.Errorf("Expected count 3, got %d", count)
+		}
+
+		// Should be at EOF now
+		next := l.next()
+		if next != eof {
+			t.Errorf("Expected EOF, got %c", next)
+		}
+	})
+
+	// Test with a range that includes multi-byte characters
+	t.Run("Multi-byte character range", func(t *testing.T) {
+		// Mix of ASCII, Latin-1, and CJK
+		input := "aé你"
+		reader := strings.NewReader(input)
+		l, _ := Lex(reader)
+
+		// Accept all Unicode characters
+		count := l.acceptUnicodeRange(0, 0x10FFFF)
+		if count != 3 {
+			t.Errorf("Expected count 3, got %d", count)
+		}
+	})
+
+	// Test with invalid continuation bytes
+	t.Run("Invalid continuation bytes", func(t *testing.T) {
+		// 0xC0 0x28 is an invalid UTF-8 sequence (0x28 is not a valid continuation byte)
+		input := string([]byte{0xC0, 0x28, 0x41})
+		reader := strings.NewReader(input)
+		l, _ := Lex(reader)
+
+		count := l.acceptUnicodeRange(0, 0x10FFFF)
+		if count != 0 {
+			t.Errorf("Expected count 0, got %d", count)
+		}
+
+		// The position should be at the beginning
+		next := l.next()
+		if next != 0xC0 {
+			t.Errorf("Expected next character to be 0xC0, got %x", next)
+		}
+	})
+}
