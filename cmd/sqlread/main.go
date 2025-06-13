@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/csv"
+	"errors"
 	"flag"
 	"io"
 	"log"
@@ -39,11 +40,15 @@ func main() {
 
 	cache := mapcache.New(unbuff)
 	tree, err := cache.Get()
-	if err != nil && err != mapcache.ErrCacheMiss {
+	if err != nil && !errors.Is(err, mapcache.ErrCacheMiss) {
 		log.Fatal(err)
 	}
 
-	if err == mapcache.ErrCacheMiss || *nocache {
+	if errors.Is(err, mapcache.ErrCacheMiss) || *nocache {
+		if errors.Is(err, mapcache.ErrCacheVersionMismatch) {
+			log.Println("cache version mismatch, rebuilding cache")
+		}
+
 		l, li := sqlread.Lex(buff)
 		go func() {
 			l.Run(sqlread.StartState)

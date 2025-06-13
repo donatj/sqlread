@@ -3,6 +3,7 @@ package mapcache
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 
 	"github.com/donatj/sqlread"
@@ -10,7 +11,7 @@ import (
 
 // CacheVersion is incremented when the structure of the cache changes
 // such that it is no longer compatible.
-const CacheVersion = 1
+const CacheVersion = 2
 
 type MapCache struct {
 	sqlfile *os.File
@@ -24,7 +25,8 @@ func New(sqlfile *os.File) *MapCache {
 
 var (
 	// ErrCacheMiss is an error when a valid cache is not found
-	ErrCacheMiss = errors.New("cache miss")
+	ErrCacheMiss            = errors.New("cache miss")
+	ErrCacheVersionMismatch = fmt.Errorf("%w; cache version mismatch", ErrCacheMiss)
 )
 
 func (m *MapCache) Get() (sqlread.SummaryTree, error) {
@@ -49,7 +51,7 @@ func (m *MapCache) Get() (sqlread.SummaryTree, error) {
 	}
 
 	if v.Version != CacheVersion {
-		return nil, ErrCacheMiss
+		return nil, ErrCacheVersionMismatch
 	}
 
 	return v.Tree, nil
