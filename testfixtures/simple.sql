@@ -34,3 +34,30 @@ LOCK TABLES `client_location` WRITE;
 INSERT INTO `client_location` VALUES (1,1,1,'AcneSpot School','Test school for AcneSpot','AcneSpotschool','7825 Telegraph Rd','','Bloomington',28,'55438','4875948',NULL,0,'UTC'),(2,1,1,'Edina Middle School','Edina Middle School','edinamiddle','5808 Olinger Blvd',NULL,'Edina',28,'55436','5875948',NULL,0,'UTC'),(3,1,1,'Countryside High School','Countryside High School','countrysidehigh','5701 Benton Avenue',NULL,'Edina',28,'55436-2501','6875948',NULL,0,'UTC'),(325,4,1,'AcneSpot Middle School','AcneSpot Middle School','AcneSpotmiddle','7825 Telegraph Road','','Bloomington',28,'55438','1000001',NULL,0,'UTC');
 /*!40000 ALTER TABLE `client_location` ENABLE KEYS */;
 UNLOCK TABLES;
+
+
+--
+-- Table structure for table `change_log`
+--
+
+DROP TABLE IF EXISTS `change_log`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `change_log` (
+                              `event_log_id` bigint unsigned NOT NULL AUTO_INCREMENT,
+                              `message` text NOT NULL,
+                              `context` mediumblob NOT NULL,
+                              `created` datetime NOT NULL,
+                              PRIMARY KEY (`event_log_id`) USING BTREE,
+                              KEY `created` (`created`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=8706 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `change_log`
+--
+
+LOCK TABLES `change_log` WRITE;
+/*!40000 ALTER TABLE `change_log` DISABLE KEYS */;
+SET autocommit=0;
+INSERT INTO `change_log` VALUES (126,'Removed item',0x733a31343a227468697320697320612074657374223b,'2024-03-12 14:08:05');
