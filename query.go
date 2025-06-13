@@ -1,5 +1,7 @@
 package sqlread
 
+import "strings"
+
 type Query struct {
 	Columns []string
 	Table   string
@@ -254,7 +256,19 @@ func (q *QueryParser) parseSelectIntoOutfileBuilder(qry *Query) parseState {
 }
 
 func identValue(c LexItem) string {
-	// remove backticks - if/when we implement backtickless
-	// identifiers this will need to be better handled.
-	return c.Val[1 : len(c.Val)-1]
+	if c.Val == "" {
+		panic("empty identifier value")
+	}
+
+	v := c.Val
+	if v[0] == '`' {
+		if len(v) < 2 || v[len(v)-1] != '`' {
+			panic("unclosed backtick in identifier")
+		}
+		inner := v[1 : len(v)-1]
+		// replace doubled backticks with a single backtick
+		return strings.ReplaceAll(inner, "``", "`")
+	}
+
+	return v
 }
