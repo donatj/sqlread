@@ -3,6 +3,7 @@ package sqlread
 import (
 	"io"
 	"strings"
+	"unicode/utf8"
 )
 
 type lexItemType uint8
@@ -138,10 +139,12 @@ func (l *lexer) hasPrefixI(s string) bool {
 type state func(*lexer) state
 
 var (
-	whitespace = []byte(" \t\r\n")
-	sep        = []byte(" \t\r\n;")
-	numbers    = []byte("0123456789")
-	hexNumbers = []byte("0123456789abcdefABCDEF")
+	whitespace  = []byte(" \t\r\n")
+	sep         = []byte(" \t\r\n;")
+	numbers     = []byte("0123456789")
+	hexNumbers  = []byte("0123456789abcdefABCDEF")
+	letters     = []byte("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	identifiers = append(letters, append(numbers, '$', '_')...)
 )
 
 func (l *lexer) Run(start state) {
@@ -180,6 +183,66 @@ func (l *lexer) until(b byte) bool {
 
 		if n == b {
 			return true
+		}
+	}
+}
+
+func (l *lexer) acceptUnicodeRange(start, end rune) (c int) {
+	buf := make([]byte, 4) // Maximum UTF-8 character size is 4 bytes
+
+	for {
+		// Read the first byte
+		firstByte := l.next()
+		if firstByte == eof {
+			return c
+		}
+
+		// Store the first byte
+		buf[0] = firstByte
+
+		// Determine the width of the UTF-8 character
+		width := 1
+		if firstByte >= 0xF0 { // 4-byte character
+			width = 4
+		} else if firstByte >= 0xE0 { // 3-byte character
+			width = 3
+		} else if firstByte >= 0xC0 { // 2-byte character
+			width = 2
+		}
+
+		// Read the remaining bytes if it's a multi-byte character
+		for i := 1; i < width; i++ {
+			b := l.next()
+			if b == eof || b < 0x80 || b >= 0xC0 { // Invalid continuation byte
+				// Rewind what we've read so far
+				l.rewind() // Rewind the invalid byte
+				for j := 0; j < i; j++ {
+					l.rewind() // Rewind the bytes we've already read
+				}
+				return c
+			}
+			buf[i] = b
+		}
+
+		// Decode the UTF-8 bytes into a rune
+		r, _ := utf8.DecodeRune(buf[:width])
+		if r == utf8.RuneError && width > 1 {
+			// Invalid UTF-8 sequence, rewind all bytes
+			for i := 0; i < width; i++ {
+				l.rewind()
+			}
+			return c
+		}
+
+		// Check if the rune is within the specified range
+		if r >= start && r <= end {
+			c++
+		} else {
+			// Rewind the bytes we read
+			for i := 0; i < width; i++ {
+				l.rewind()
+			}
+			return c
 		}
 	}
 }
