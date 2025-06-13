@@ -623,4 +623,40 @@ func TestLexer_AcceptUnicodeRange_EdgeCases(t *testing.T) {
 			t.Errorf("Expected next character to be 0xC0, got %x", next)
 		}
 	})
+
+	// Test specifically for the case where r == utf8.RuneError && width > 1
+	t.Run("Invalid UTF-8 sequence with RuneError", func(t *testing.T) {
+		// Create a sequence that will be decoded as utf8.RuneError
+		// 0xED 0xA0 0x80 is an invalid UTF-8 sequence (surrogate half)
+		input := string([]byte{0xED, 0xA0, 0x80, 0x41})
+		reader := strings.NewReader(input)
+		l, _ := Lex(reader)
+
+		count := l.acceptUnicodeRange(0, 0x10FFFF)
+		if count != 0 {
+			t.Errorf("Expected count 0, got %d", count)
+		}
+
+		// The position should be at the beginning
+		next := l.next()
+		if next != 0xED {
+			t.Errorf("Expected next character to be 0xED, got %x", next)
+		}
+
+		// Read the next bytes to ensure all bytes were rewound
+		next = l.next()
+		if next != 0xA0 {
+			t.Errorf("Expected next character to be 0xA0, got %x", next)
+		}
+
+		next = l.next()
+		if next != 0x80 {
+			t.Errorf("Expected next character to be 0x80, got %x", next)
+		}
+
+		next = l.next()
+		if next != 0x41 { // 'A'
+			t.Errorf("Expected next character to be 0x41, got %x", next)
+		}
+	})
 }
