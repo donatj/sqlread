@@ -130,7 +130,7 @@ func (t *SummaryParser) parseInsertIntoBuilder(il LexItem) parseState {
 
 		s, ok := p.scanUntil(TSemi)
 		if !ok {
-			p.errorUnexpectedEOF()
+			p.errorUnexpectedEOFExpectedLexItemType(c.Pos, TSemi)
 			return nil
 		}
 

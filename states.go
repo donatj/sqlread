@@ -113,8 +113,20 @@ func insertRowState(l *lexer) state {
 	l.start = l.pos
 	for {
 		c := l.next()
-
 		if in(c, numbers) || c == dash {
+			if c == '0' {
+				_, p := l.peek(1)
+				if p[0] == 'x' {
+					l.rewind()
+					if eatHexNumber(l) {
+						l.emit(THexLiteral)
+						break
+					} else {
+						goto illegal
+					}
+				}
+			}
+
 			l.rewind()
 			if eatNumber(l) {
 				l.emit(TNumber)
@@ -132,6 +144,7 @@ func insertRowState(l *lexer) state {
 			break
 		}
 
+	illegal:
 		l.emit(TIllegal)
 		return nil
 	}
@@ -466,6 +479,21 @@ func eatNumber(l *lexer) bool {
 	return n1+n2 > 0
 }
 
+func eatHexNumber(l *lexer) bool {
+	if l.hasPrefix("0x") {
+		l.pos += 2
+	} else {
+		return false
+	}
+
+	n := l.accept(hexNumbers)
+	if n == 0 {
+		return false
+	}
+
+	return n > 0
+}
+
 func eatString(l *lexer) bool {
 	delim := l.next()
 	l.rewind()
@@ -511,19 +539,27 @@ func eatDelimStr(l *lexer, delim byte) bool {
 }
 
 func eatIdentifier(l *lexer) bool {
-	b := l.next()
-	l.rewind()
-
-	if b == bt {
+	np, b := l.peek(1)
+	if np == 1 && b[0] == bt {
 		return eatDelimStr(l, bt)
 	}
 
-	log.Println("non-backtick identifiers not implemented yet at: ", l.pos)
-	l.emit(TIllegal)
+	// https://dev.mysql.com/doc/refman/8.0/en/identifiers.html
 
-	// https://dev.mysql.com/doc/refman/5.7/en/identifiers.html
+	n := 0
+	for {
+		n1 := l.accept(identifiers)
+		n2 := l.acceptUnicodeRange(0x0080, 0xFFFF)
 
-	return false
+		n += n1 + n2
+		if n1+n2 == 0 {
+			if n == 0 {
+				return false
+			}
+
+			return true
+		}
+	}
 }
 
 func identifierStateBuilder(ret state) state {
