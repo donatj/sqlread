@@ -2,6 +2,7 @@ package sqlread
 
 import (
 	"fmt"
+	"slices"
 )
 
 // Parser is a state based SQL Parser that reads LexItems on a channel
@@ -51,21 +52,27 @@ func (p *Parser) errorUnexpectedLex(f LexItem, e ...lexItemType) {
 		s += "'" + ei.String() + "' "
 	}
 
-	p.err = fmt.Errorf("found '%s'; expected '%#v' at byte: %d", f.Type.String(), s, f.Pos)
+	p.err = fmt.Errorf("found '%s'; expected %s at byte: %d", f.Type.String(), s, f.Pos)
 }
 
 func (p *Parser) errorUnexpectedEOF() {
 	p.err = fmt.Errorf("unexpected eof")
 }
 
-func isOfAny(c LexItem, l ...lexItemType) bool {
-	for _, lt := range l {
-		if c.Type == lt {
-			return true
-		}
+// errorUnexpectedEOFExpectedLexItemType is used when the parser expects a specific lex item type but reaches EOF
+// It includes the last position scanned to help with debugging
+// lastPos is the position of the last valid scanned item
+func (p *Parser) errorUnexpectedEOFExpectedLexItemType(lastPos int64, e ...lexItemType) {
+	s := ""
+	for _, ei := range e {
+		s += "'" + ei.String() + "' "
 	}
 
-	return false
+	p.err = fmt.Errorf("unexpected eof; expected %s starting at byte: %d", s, lastPos+1)
+}
+
+func isOfAny(c LexItem, l ...lexItemType) bool {
+	return slices.Contains(l, c.Type)
 }
 
 type parseState func(*Parser) parseState
