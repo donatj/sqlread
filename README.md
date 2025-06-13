@@ -7,13 +7,12 @@
 
 sqlread is a mysql dump parser that allows you to query MySQL dumps directly without loading them into MySQL, and export specific tables from said dumps.
 
-Currently very picky and only likes `mysqldump` generated output dumps. Mileage may vary on dumps created with other tools such as Navicat. Compatibility is a work in progress.
+Currently, very picky and only likes `mysqldump` generated output dumps. Mileage may vary on dumps created with other tools such as Navicat. Compatibility is a work in progress.
 
 ## Todo:
 
 While the code is quite usable and useful, I still have a ways to go.
 
-- [ ] Query fields without backticks - currently all fields **must** be wrapped in backticks.
 - [ ] General Expression Support
   - [ ] Basic WHERE support
   - [ ] Basic ORDER BY support
@@ -42,7 +41,7 @@ $ sqlread buildings.sql
 buildings
 2017/12/22 12:24:01 restarting lexer
 
-> SHOW COLUMNS FROM `buildings`;
+> SHOW COLUMNS FROM buildings;
 building_id,int
 account_id,int
 title,varchar
@@ -53,7 +52,7 @@ zip_code,varchar
 deleted,tinyint
 2017/12/22 12:24:08 restarting lexer
 
-> SELECT `building_id`, `title` FROM `buildings`;
+> SELECT building_id, title FROM buildings;
 2,Home Building
 190,Test Building (demo)
 192,Donat Building
