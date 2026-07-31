@@ -2,6 +2,7 @@ package sqlread
 
 import (
 	"io"
+	"slices"
 	"strings"
 	"unicode/utf8"
 )
@@ -158,13 +159,7 @@ func (l *lexer) accept(bs []byte) (c int) {
 	for {
 		n := l.next()
 
-		found := false
-		for _, b := range bs {
-			if b == n {
-				found = true
-				break
-			}
-		}
+		found := slices.Contains(bs, n)
 
 		if !found {
 			l.rewind()
@@ -281,11 +276,5 @@ func (l *lexer) emit(t lexItemType) LexItem {
 }
 
 func in(b byte, bs []byte) bool {
-	for _, bb := range bs {
-		if b == bb {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(bs, b)
 }

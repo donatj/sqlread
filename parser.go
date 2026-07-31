@@ -3,6 +3,7 @@ package sqlread
 import (
 	"fmt"
 	"slices"
+	"strings"
 )
 
 // Parser is a state based SQL Parser that reads LexItems on a channel
@@ -47,12 +48,12 @@ func (p *Parser) Run(start parseState) error {
 }
 
 func (p *Parser) errorUnexpectedLex(f LexItem, e ...lexItemType) {
-	s := ""
+	var s strings.Builder
 	for _, ei := range e {
-		s += "'" + ei.String() + "' "
+		s.WriteString("'" + ei.String() + "' ")
 	}
 
-	p.err = fmt.Errorf("found '%s'; expected %s at byte: %d", f.Type.String(), s, f.Pos)
+	p.err = fmt.Errorf("found '%s'; expected %s at byte: %d", f.Type.String(), s.String(), f.Pos)
 }
 
 func (p *Parser) errorUnexpectedEOF() {
@@ -63,12 +64,12 @@ func (p *Parser) errorUnexpectedEOF() {
 // It includes the last position scanned to help with debugging
 // lastPos is the position of the last valid scanned item
 func (p *Parser) errorUnexpectedEOFExpectedLexItemType(lastPos int64, e ...lexItemType) {
-	s := ""
+	var s strings.Builder
 	for _, ei := range e {
-		s += "'" + ei.String() + "' "
+		s.WriteString("'" + ei.String() + "' ")
 	}
 
-	p.err = fmt.Errorf("unexpected eof; expected %s starting at byte: %d", s, lastPos+1)
+	p.err = fmt.Errorf("unexpected eof; expected %s starting at byte: %d", s.String(), lastPos+1)
 }
 
 func isOfAny(c LexItem, l ...lexItemType) bool {

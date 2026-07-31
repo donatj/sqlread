@@ -2,6 +2,7 @@ package sqlread
 
 import (
 	"errors"
+	"strings"
 )
 
 type InsertDetailParser struct {
@@ -82,7 +83,7 @@ func stringValue(c LexItem) (string, error) {
 	d := v[0]
 	m := len(v) - 2
 
-	s := ""
+	var s strings.Builder
 	i := 0
 	for {
 		i++
@@ -125,22 +126,22 @@ func stringValue(c LexItem) (string, error) {
 			}
 
 			i++
-			s += string(x)
+			s.WriteString(string(x))
 			continue
 		}
 
 		if v[i] == d {
 			if i+1 < m && v[i+1] == d {
 				i++
-				s += string(d)
+				s.WriteString(string(d))
 				continue
 			} else {
 				return "", errorInvalidString
 			}
 		}
 
-		s += string(v[i])
+		s.WriteString(string(v[i]))
 	}
 
-	return s, nil
+	return s.String(), nil
 }
