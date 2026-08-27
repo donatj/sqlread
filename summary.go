@@ -73,9 +73,7 @@ func (t *SummaryParser) parseCreateBuilder(start LexItem) parseState {
 			t.Tree[c.Val] = SummaryTable{
 				Create: c,
 				Cols:   make([]SummaryColumn, 0),
-				SummaryDataLoc: SummaryDataLoc{
-					Start: start,
-				},
+				Start:  start,
 			}
 		}
 

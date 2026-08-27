@@ -1,6 +1,6 @@
 module github.com/donatj/sqlread
 
-go 1.26
+go 1.27.0
 
 require (
 	github.com/avvmoto/buf-readerat v0.0.0-20171115124131-a17c8cb89270
