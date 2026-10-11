@@ -16,6 +16,13 @@ This document records that foundation and defines requirements for future work.
 The final section identifies areas to measure or refine within the existing
 implementation.
 
+## Scope
+
+sqlread supports a deliberate subset of dump formats and query syntax. Full SQL
+compatibility is not a requirement. Document the supported syntax as it evolves.
+New capabilities must preserve the ability to process very large dumps with
+limited memory.
+
 ## Foundation: Lexical Scanning in Go
 
 The scanner design must remain firmly based on Rob Pike's
@@ -44,6 +51,11 @@ requirements.
 
 The dump remains the authoritative copy of its contents. The index describes
 locations in that file. It must not become a second copy of the rows.
+
+Open the source dump read-only. Scanning, querying, and caching must never modify
+it. Cache files, exports, and temporary files must be separate from the source.
+Reject output destinations that refer to the source file, including through
+another path.
 
 - Represent source locations with byte offsets and lengths. Define their bounds
   consistently. Translate section-relative positions before storing them in a
@@ -178,6 +190,15 @@ control flow. Keep the state-function design in either case.
 End of file, malformed input, and cancellation must have distinct outcomes.
 Every path must terminate. Report useful source positions without copying huge
 tokens into error messages.
+
+## Failure behavior
+
+Unsupported syntax, malformed data, and read or output failures must produce
+clear errors. Document any dump statements that are intentionally ignored.
+Never silently discard data to make an operation appear successful.
+
+A streaming operation may have written partial output before a failure occurs.
+Report the failure clearly. Never describe that output as complete or successful.
 
 ## Cache contract
 
