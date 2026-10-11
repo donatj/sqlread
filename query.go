@@ -2,10 +2,17 @@ package sqlread
 
 import "strings"
 
+// QueryLimit restricts the rows returned by a query.
+type QueryLimit struct {
+	Offset uint64
+	Count  uint64
+}
+
 type Query struct {
 	Columns []string
 	Table   string
 	Outfile *string
+	Limit   *QueryLimit
 }
 
 type QueryTree struct {
