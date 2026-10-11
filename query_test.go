@@ -1,6 +1,7 @@
 package sqlread
 
 import (
+	"io"
 	"reflect"
 	"strings"
 	"testing"
@@ -56,6 +57,26 @@ func TestQueryParserLimitRejectsNonIntegers(t *testing.T) {
 	}
 }
 
+func TestQueryParserDoesNotReadPastSemicolon(t *testing.T) {
+	for _, query := range []string{
+		"SELECT * FROM records;",
+		"SELECT * FROM records INTO OUTFILE 'records.csv';",
+	} {
+		t.Run(query, func(t *testing.T) {
+			input := &readPastEndReader{input: query}
+
+			_, err := parseUserQueryReader(input)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if input.readPastEnd {
+				t.Fatal("parser read past the statement terminator")
+			}
+		})
+	}
+}
+
 func TestQueryLimitIncludes(t *testing.T) {
 	tests := []struct {
 		name  string
@@ -80,11 +101,37 @@ func TestQueryLimitIncludes(t *testing.T) {
 }
 
 func parseUserQuery(input string) (QueryTree, error) {
-	l, items := Lex(strings.NewReader(input))
+	return parseUserQueryReader(strings.NewReader(input))
+}
+
+func parseUserQueryReader(input io.ReaderAt) (QueryTree, error) {
+	l, items := Lex(input)
 	intp := &Intp{}
 	go l.Run(intp.StartIntpState)
 
 	query := NewQueryParser()
 	err := Parse(items).Run(query.ParseStart)
 	return query.Tree, err
+}
+
+type readPastEndReader struct {
+	input       string
+	readPastEnd bool
+}
+
+func (r *readPastEndReader) ReadAt(b []byte, off int64) (int, error) {
+	if off+int64(len(b)) > int64(len(r.input)) {
+		r.readPastEnd = true
+	}
+
+	if off >= int64(len(r.input)) {
+		return 0, io.EOF
+	}
+
+	n := copy(b, r.input[off:])
+	if n != len(b) {
+		return n, io.EOF
+	}
+
+	return n, nil
 }

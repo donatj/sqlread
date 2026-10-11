@@ -201,13 +201,20 @@ func (intp *Intp) selectFromIntpState(l *lexer) state {
 	l.accept(whitespace)
 
 	l.start = l.pos
-	if l.hasPrefixI("LIMIT") {
-		l.pos += 5
-		l.emit(TIntpLimit)
-		return intp.selectLimitIntpState
+	c := l.next()
+	if c == semi {
+		l.emit(TSemi)
+		return nil
 	}
 
-	c := l.next()
+	if c == byte('l') || c == byte('L') {
+		if l.hasPrefixI("IMIT") {
+			l.pos += 4
+			l.emit(TIntpLimit)
+			return intp.selectLimitIntpState
+		}
+	}
+
 	if c == byte('i') || c == byte('I') {
 		if l.hasPrefixI("NTO") {
 			l.pos += 3
@@ -224,12 +231,7 @@ func (intp *Intp) selectFromIntpState(l *lexer) state {
 
 	l.start = l.pos
 
-	if c != semi {
-		l.emit(TIllegal)
-		return nil
-	}
-
-	l.emit(TSemi)
+	l.emit(TIllegal)
 	return nil
 }
 
@@ -251,19 +253,22 @@ func (intp *Intp) selectFromIntoOutfileIntpState(l *lexer) state {
 
 	l.accept(whitespace)
 	l.start = l.pos
-	if l.hasPrefixI("LIMIT") {
-		l.pos += 5
-		l.emit(TIntpLimit)
-		return intp.selectLimitIntpState
-	}
-
 	c := l.next()
-	if c != semi {
-		l.emit(TIllegal)
+	if c == semi {
+		l.emit(TSemi)
 		return nil
 	}
 
-	l.emit(TSemi)
+	if c == byte('l') || c == byte('L') {
+		if l.hasPrefixI("IMIT") {
+			l.pos += 4
+			l.emit(TIntpLimit)
+			return intp.selectLimitIntpState
+		}
+	}
+
+	l.start = l.pos
+	l.emit(TIllegal)
 	return nil
 }
 
