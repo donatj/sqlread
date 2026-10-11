@@ -85,6 +85,20 @@ scanning helpers without sharing all grammar rules.
 Execution must be callable without a terminal. Core code returns errors to its
 caller. It must not exit the process or depend on global command flags.
 
+## State and simplicity
+
+The lexer and parser need state to track position and progress. Keep that state
+explicit and local to the component that owns it.
+
+Elsewhere, prefer functions and methods with explicit inputs and results. Avoid
+hidden dependencies, mutable package variables, and fields that retain data
+needed only during a single call.
+
+Fully stateless code is not a requirement. Use local mutation and stateful types
+when they make Go code clearer or support efficient streaming. Do not add layers,
+repeated copying, or awkward parameter passing solely to eliminate state. Keep
+necessary state small. Give it a clear owner and a limited lifetime.
+
 ## Initial scan
 
 Scan the dump in file order. Discover table definitions and data regions.
