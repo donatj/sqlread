@@ -4,6 +4,7 @@ import (
 	"io"
 	"slices"
 	"strings"
+	"sync"
 	"unicode/utf8"
 )
 
@@ -75,6 +76,8 @@ type lexer struct {
 	pos   int64
 	// width int
 	items chan LexItem
+	done  chan struct{}
+	stop  sync.Once
 }
 
 const (
@@ -151,6 +154,9 @@ var (
 
 func (l *lexer) Run(start state) {
 	for state := start; state != nil; {
+		if l.stopped() {
+			break
+		}
 		state = state(l)
 	}
 	close(l.items)
@@ -247,6 +253,7 @@ func Lex(input io.ReaderAt) (*lexer, chan LexItem) {
 	l := &lexer{
 		input: input,
 		items: make(chan LexItem, 2000000),
+		done:  make(chan struct{}),
 	}
 
 	return l, l.items
@@ -256,6 +263,7 @@ func LexSection(input io.ReaderAt, off, n int64) (*lexer, chan LexItem) {
 	l := &lexer{
 		input: io.NewSectionReader(input, off, n),
 		items: make(chan LexItem, 2000000),
+		done:  make(chan struct{}),
 	}
 
 	return l, l.items
@@ -271,9 +279,27 @@ func (l *lexer) emit(t lexItemType) LexItem {
 		Pos:  l.start,
 	}
 
-	l.items <- li
+	select {
+	case l.items <- li:
+	case <-l.done:
+	}
 
 	return li
+}
+
+func (l *lexer) Stop() {
+	l.stop.Do(func() {
+		close(l.done)
+	})
+}
+
+func (l *lexer) stopped() bool {
+	select {
+	case <-l.done:
+		return true
+	default:
+		return false
+	}
 }
 
 func in(b byte, bs []byte) bool {

@@ -35,6 +35,10 @@ func execQuery(tree sqlread.SummaryTree, qry sqlread.Query, buff io.ReaderAt, w 
 	}
 	var rowsSeen uint64
 	for _, loc := range tbl.DataLocs {
+		if qry.Limit != nil && !qry.Limit.Includes(rowsSeen) {
+			return nil
+		}
+
 		start := loc.Start.Pos
 		end := loc.End.Pos
 
@@ -66,6 +70,11 @@ func execQuery(tree sqlread.SummaryTree, qry sqlread.Query, buff io.ReaderAt, w 
 			}
 
 			w.Write(out)
+
+			if qry.Limit != nil && !qry.Limit.Includes(rowsSeen) {
+				sp.Stop()
+				sl.Stop()
+			}
 		}
 		w.Flush()
 	}

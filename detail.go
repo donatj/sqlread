@@ -3,20 +3,50 @@ package sqlread
 import (
 	"errors"
 	"strings"
+	"sync"
 )
 
 type InsertDetailParser struct {
 	Out    chan []string
 	ColInd []int
+	done   chan struct{}
+	stop   sync.Once
 }
 
 func NewInsertDetailParser() *InsertDetailParser {
 	return &InsertDetailParser{
-		Out: make(chan []string, 100),
+		Out:  make(chan []string, 100),
+		done: make(chan struct{}),
+	}
+}
+
+func (d *InsertDetailParser) Stop() {
+	d.stop.Do(func() {
+		close(d.done)
+	})
+}
+
+func (d *InsertDetailParser) stopped() bool {
+	select {
+	case <-d.done:
+		return true
+	default:
+		return false
+	}
+}
+
+func (d *InsertDetailParser) writeRow(row []string) bool {
+	select {
+	case d.Out <- row:
+		return true
+	case <-d.done:
+		return false
 	}
 }
 
 func (d *InsertDetailParser) ParseStart(p *Parser) parseState {
+	defer close(d.Out)
+
 	cii, ok := p.scan()
 	if !ok {
 		p.errorUnexpectedEOF()
@@ -40,8 +70,15 @@ func (d *InsertDetailParser) ParseStart(p *Parser) parseState {
 	row := []string{}
 
 	for {
+		if d.stopped() {
+			return nil
+		}
+
 		v, ok := p.scan()
 		if !ok {
+			if d.stopped() {
+				return nil
+			}
 			p.errorUnexpectedEOF()
 		}
 
@@ -61,11 +98,12 @@ func (d *InsertDetailParser) ParseStart(p *Parser) parseState {
 		case TNull:
 			row = append(row, "\u0000") // investigate
 		case TComma:
-			d.Out <- row
+			if !d.writeRow(row) {
+				return nil
+			}
 			row = []string{}
 		case TSemi:
-			d.Out <- row
-			close(d.Out)
+			d.writeRow(row)
 			return nil
 		}
 	}
