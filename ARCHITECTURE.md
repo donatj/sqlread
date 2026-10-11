@@ -192,9 +192,20 @@ cache must bypass both loading and storing it.
 
 ## Validation
 
-Test the boundaries between components with small dump fixtures. Cover multiple
-data regions, quoted delimiters, partial input, cancellation, and output failures.
-Check the resulting rows and completion behavior through the real executor.
+Prefer integration and functional tests that exercise complete workflows across
+components. Use representative dump fixtures to test scanning, indexing, query
+parsing, execution, and output together. Include command-line and interactive
+behavior where relevant. Fixtures can be small while still exercising the real
+components.
+
+Assert observable results, errors, and completion behavior. Cover multiple data
+regions, quoted delimiters, partial input, cancellation, and output failures.
+Favor real component interactions over mocks of internal behavior.
+
+Use focused unit tests for subtle rules or edge cases when they add useful
+coverage. They should complement broader tests. Avoid tests that merely mirror
+individual helper implementations or make internal refactoring unnecessarily
+difficult.
 
 Measure peak live memory during indexing, cache loading, and query execution.
 Increase row counts and dump size while holding the schema fixed. Then vary
