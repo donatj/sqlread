@@ -28,6 +28,27 @@ go install github.com/donatj/sqlread/cmd/sqlread@latest
 
 Available on the [Releases](https://github.com/donatj/sqlread/releases) page currently for Linux and macOS.
 
+## User query grammar
+
+Square brackets (`[]`) mark optional clauses. Braces (`{}`) require one choice.
+A vertical bar (`|`) separates choices. An ellipsis (`...`) marks a repeated item.
+
+```
+SELECT { * | column_name } [, { * | column_name }] ...
+    FROM table_name
+    [INTO OUTFILE string]
+    [LIMIT { row_count | offset, row_count }];
+
+SHOW TABLES;
+SHOW COLUMNS FROM table_name;
+SHOW CREATE TABLE table_name;
+{ EXIT | QUIT };
+```
+
+Keywords are case-insensitive. Table names and column names may use backticks.
+`string` values may use single or double quotes. `offset` and `row_count` must be
+non-negative integers. Expressions, `WHERE`, and `ORDER BY` are not supported.
+
 ## Example usage
 
 ```
@@ -50,13 +71,9 @@ zip_code,varchar
 deleted,tinyint
 2017/12/22 12:24:08 restarting lexer
 
-> SELECT building_id, title FROM buildings;
+> SELECT building_id, title FROM buildings LIMIT 2;
 2,Home Building
 190,Test Building (demo)
-192,Donat Building
-194,Other Building
-201,Sample Building (demo)
-205,Johnson Building
 2017/12/22 12:24:44 restarting lexer
 
 > SELECT `building_id`, `title` FROM `buildings` INTO OUTFILE "dump.csv";

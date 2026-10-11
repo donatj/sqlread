@@ -1,11 +1,20 @@
 package sqlread
 
-import "strings"
+import (
+	"strconv"
+	"strings"
+)
+
+type QueryLimit struct {
+	Offset uint64
+	Count  uint64
+}
 
 type Query struct {
 	Columns []string
 	Table   string
 	Outfile *string
+	Limit   *QueryLimit
 }
 
 type QueryTree struct {
@@ -214,7 +223,11 @@ func (q *QueryParser) parseSelectFromBuilder(qry *Query) parseState {
 			return q.parseSelectIntoOutfileBuilder(qry)
 		}
 
-		p.errorUnexpectedLex(d, TSemi, TIntpIntoOutfile)
+		if d.Type == TIntpLimit {
+			return q.parseSelectLimitBuilder(qry)
+		}
+
+		p.errorUnexpectedLex(d, TSemi, TIntpIntoOutfile, TIntpLimit)
 		return nil
 	}
 }
@@ -250,7 +263,82 @@ func (q *QueryParser) parseSelectIntoOutfileBuilder(qry *Query) parseState {
 			return nil
 		}
 
-		p.errorUnexpectedLex(d, TSemi)
+		if d.Type == TIntpLimit {
+			return q.parseSelectLimitBuilder(qry)
+		}
+
+		p.errorUnexpectedLex(d, TSemi, TIntpLimit)
+		return nil
+	}
+}
+
+func (q *QueryParser) parseSelectLimitBuilder(qry *Query) parseState {
+	return func(p *Parser) parseState {
+		c, ok := p.scan()
+		if !ok {
+			p.errorUnexpectedEOF()
+			return nil
+		}
+		if c.Type != TNumber {
+			p.errorUnexpectedLex(c, TNumber)
+			return nil
+		}
+
+		first, err := strconv.ParseUint(c.Val, 10, 64)
+		if err != nil {
+			p.err = err
+			return nil
+		}
+
+		d, ok := p.scan()
+		if !ok {
+			p.errorUnexpectedEOF()
+			return nil
+		}
+		if d.Type == TSemi {
+			qry.Limit = &QueryLimit{Count: first}
+			q.Tree.Queries = append(q.Tree.Queries, *qry)
+			return nil
+		}
+		if d.Type == TComma {
+			return q.parseSelectLimitCountBuilder(qry, first)
+		}
+
+		p.errorUnexpectedLex(d, TSemi, TComma)
+		return nil
+	}
+}
+
+func (q *QueryParser) parseSelectLimitCountBuilder(qry *Query, offset uint64) parseState {
+	return func(p *Parser) parseState {
+		c, ok := p.scan()
+		if !ok {
+			p.errorUnexpectedEOF()
+			return nil
+		}
+		if c.Type != TNumber {
+			p.errorUnexpectedLex(c, TNumber)
+			return nil
+		}
+
+		count, err := strconv.ParseUint(c.Val, 10, 64)
+		if err != nil {
+			p.err = err
+			return nil
+		}
+
+		d, ok := p.scan()
+		if !ok {
+			p.errorUnexpectedEOF()
+			return nil
+		}
+		if d.Type != TSemi {
+			p.errorUnexpectedLex(d, TSemi)
+			return nil
+		}
+
+		qry.Limit = &QueryLimit{Offset: offset, Count: count}
+		q.Tree.Queries = append(q.Tree.Queries, *qry)
 		return nil
 	}
 }

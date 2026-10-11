@@ -38,17 +38,18 @@ func _() {
 	_ = x[TIntpStar-27]
 	_ = x[TIntpFrom-28]
 	_ = x[TIntpIntoOutfile-29]
-	_ = x[TIntpShowTables-30]
-	_ = x[TIntpShowColumns-31]
-	_ = x[TIntpShowCreateTable-32]
-	_ = x[TIntpQuit-33]
-	_ = x[TBeginFullStmt-34]
-	_ = x[TCommitFullStmt-35]
+	_ = x[TIntpLimit-30]
+	_ = x[TIntpShowTables-31]
+	_ = x[TIntpShowColumns-32]
+	_ = x[TIntpShowCreateTable-33]
+	_ = x[TIntpQuit-34]
+	_ = x[TBeginFullStmt-35]
+	_ = x[TCommitFullStmt-36]
 }
 
-const _lexItemType_name = "TIllegalTEofTSemiTCommaTCommentTDelimTNullTStringTNumberTHexLiteralTIdentifierTDropTableFullStmtTLockTableFullStmtTUnlockTablesFullStmtTSetFullStmtTLParenTRParenTCreateTableTCreateTableDetailTCreateTableExtraDetailTColumnTypeTColumnSizeTColumnEnumValTColumnDetailsTInsertIntoTInsertValuesTIntpSelectTIntpStarTIntpFromTIntpIntoOutfileTIntpShowTablesTIntpShowColumnsTIntpShowCreateTableTIntpQuitTBeginFullStmtTCommitFullStmt"
+const _lexItemType_name = "TIllegalTEofTSemiTCommaTCommentTDelimTNullTStringTNumberTHexLiteralTIdentifierTDropTableFullStmtTLockTableFullStmtTUnlockTablesFullStmtTSetFullStmtTLParenTRParenTCreateTableTCreateTableDetailTCreateTableExtraDetailTColumnTypeTColumnSizeTColumnEnumValTColumnDetailsTInsertIntoTInsertValuesTIntpSelectTIntpStarTIntpFromTIntpIntoOutfileTIntpLimitTIntpShowTablesTIntpShowColumnsTIntpShowCreateTableTIntpQuitTBeginFullStmtTCommitFullStmt"
 
-var _lexItemType_index = [...]uint16{0, 8, 12, 17, 23, 31, 37, 42, 49, 56, 67, 78, 96, 114, 135, 147, 154, 161, 173, 191, 214, 225, 236, 250, 264, 275, 288, 299, 308, 317, 333, 348, 364, 384, 393, 407, 422}
+var _lexItemType_index = [...]uint16{0, 8, 12, 17, 23, 31, 37, 42, 49, 56, 67, 78, 96, 114, 135, 147, 154, 161, 173, 191, 214, 225, 236, 250, 264, 275, 288, 299, 308, 317, 333, 343, 358, 374, 394, 403, 417, 432}
 
 func (i lexItemType) String() string {
 	if i >= lexItemType(len(_lexItemType_index)-1) {

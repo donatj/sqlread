@@ -243,8 +243,9 @@ The current code already uses state functions and file positions to support
 large dumps with limited memory. These areas merit measurement or refinement
 as the tool evolves:
 
-- [scanner.go](scanner.go) allocates channels for 2,000,000 tokens. Token emission
-  copies source text into strings.
+- [scanner.go](scanner.go) still allocates 2,000,000-token channels for full scans
+  and user-query parsing. Data-section scans use a 64-token queue. Token emission
+  still copies source text into strings. Queue byte limits need further work.
 - [cmd/sqlread/main.go](cmd/sqlread/main.go) configures a 100,000,000-byte reader
   buffer. Its capacity needs a measured justification against the memory budget.
 - [summary.go](summary.go) retains all data-region references in memory.
@@ -253,8 +254,9 @@ as the tool evolves:
   values still need a bounded representation.
 - [cmd/sqlread/readlinewrap.go](cmd/sqlread/readlinewrap.go) connects parser reads
   directly to terminal input.
-- [cmd/sqlread/query.go](cmd/sqlread/query.go) keeps execution in the command
-  package. Worker completion and output errors need a consistent owner.
+- [execute.go](execute.go) streams query results outside the command package.
+  It owns the active lexer worker. It waits for completion on limits and errors.
+  Other scanning paths still need the same lifecycle review.
 
 Refinements must preserve the tool's ability to process very large dumps with
 limited memory. Keep the state-function foundation and the file as the backing

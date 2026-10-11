@@ -17,9 +17,19 @@ func NewInsertDetailParser() *InsertDetailParser {
 }
 
 func (d *InsertDetailParser) ParseStart(p *Parser) parseState {
+	defer close(d.Out)
+	return parseInsertRows(p, func(row []string) bool {
+		d.Out <- row
+		return true
+	})
+}
+
+// parseInsertRows stops when yield returns false. It does not retain completed rows.
+func parseInsertRows(p *Parser, yield func([]string) bool) parseState {
 	cii, ok := p.scan()
 	if !ok {
 		p.errorUnexpectedEOF()
+		return nil
 	}
 
 	if cii.Type != TInsertInto {
@@ -43,9 +53,11 @@ func (d *InsertDetailParser) ParseStart(p *Parser) parseState {
 		v, ok := p.scan()
 		if !ok {
 			p.errorUnexpectedEOF()
+			return nil
 		}
 
 		switch v.Type {
+		case TInsertValues:
 		case TString:
 			val, err := stringValue(v)
 			if err != nil {
@@ -61,11 +73,15 @@ func (d *InsertDetailParser) ParseStart(p *Parser) parseState {
 		case TNull:
 			row = append(row, "\u0000") // investigate
 		case TComma:
-			d.Out <- row
+			if !yield(row) {
+				return nil
+			}
 			row = []string{}
 		case TSemi:
-			d.Out <- row
-			close(d.Out)
+			yield(row)
+			return nil
+		default:
+			p.errorUnexpectedLex(v, TInsertValues, TString, TNumber, THexLiteral, TNull, TComma, TSemi)
 			return nil
 		}
 	}
