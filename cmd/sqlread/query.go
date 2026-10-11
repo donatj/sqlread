@@ -33,6 +33,7 @@ func execQuery(tree sqlread.SummaryTree, qry sqlread.Query, buff io.ReaderAt, w 
 			return fmt.Errorf("column `%s` not found", col)
 		}
 	}
+	var rowsSeen uint64
 	for _, loc := range tbl.DataLocs {
 		start := loc.Start.Pos
 		end := loc.End.Pos
@@ -52,12 +53,12 @@ func execQuery(tree sqlread.SummaryTree, qry sqlread.Query, buff io.ReaderAt, w 
 			}
 		}()
 
-		for {
-			row, ok := <-sp.Out
-			if !ok {
-				w.Flush()
-				break
+		for row := range sp.Out {
+			if qry.Limit != nil && !qry.Limit.Includes(rowsSeen) {
+				rowsSeen++
+				continue
 			}
+			rowsSeen++
 
 			out := make([]string, len(colind))
 			for i, ci := range colind {
@@ -66,6 +67,7 @@ func execQuery(tree sqlread.SummaryTree, qry sqlread.Query, buff io.ReaderAt, w 
 
 			w.Write(out)
 		}
+		w.Flush()
 	}
 
 	return nil

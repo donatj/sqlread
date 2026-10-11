@@ -201,6 +201,11 @@ func (intp *Intp) selectFromIntpState(l *lexer) state {
 	l.accept(whitespace)
 
 	l.start = l.pos
+	if l.hasPrefixI("LIMIT") {
+		l.pos += 5
+		l.emit(TIntpLimit)
+		return intp.selectLimitIntpState
+	}
 
 	c := l.next()
 	if c == byte('i') || c == byte('I') {
@@ -243,6 +248,65 @@ func (intp *Intp) selectFromIntoOutfileIntpState(l *lexer) state {
 		return nil
 	}
 	l.emit(TString)
+
+	l.accept(whitespace)
+	l.start = l.pos
+	if l.hasPrefixI("LIMIT") {
+		l.pos += 5
+		l.emit(TIntpLimit)
+		return intp.selectLimitIntpState
+	}
+
+	c := l.next()
+	if c != semi {
+		l.emit(TIllegal)
+		return nil
+	}
+
+	l.emit(TSemi)
+	return nil
+}
+
+func (intp *Intp) selectLimitIntpState(l *lexer) state {
+	if l.accept(whitespace) < 1 {
+		l.emit(TIllegal)
+		return nil
+	}
+
+	l.start = l.pos
+	if l.accept(numbers) == 0 {
+		l.emit(TIllegal)
+		return nil
+	}
+	l.emit(TNumber)
+
+	l.accept(whitespace)
+	l.start = l.pos
+
+	c := l.next()
+	if c == coma {
+		l.emit(TComma)
+		return intp.selectLimitCountIntpState
+	}
+
+	if c != semi {
+		l.emit(TIllegal)
+		return nil
+	}
+
+	l.emit(TSemi)
+	return nil
+}
+
+func (intp *Intp) selectLimitCountIntpState(l *lexer) state {
+	l.accept(whitespace)
+	l.start = l.pos
+
+	if l.accept(numbers) == 0 {
+		l.emit(TIllegal)
+		return nil
+	}
+	l.emit(TNumber)
 
 	l.accept(whitespace)
 	l.start = l.pos

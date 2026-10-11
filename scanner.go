@@ -51,6 +51,7 @@ const (
 	TIntpStar
 	TIntpFrom
 	TIntpIntoOutfile
+	TIntpLimit
 
 	TIntpShowTables
 	TIntpShowColumns

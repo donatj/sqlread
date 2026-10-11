@@ -30,6 +30,9 @@ Available on the [Releases](https://github.com/donatj/sqlread/releases) page cur
 
 ## Example usage
 
+Interactive `SELECT` queries support `LIMIT count` and `LIMIT offset, count`.
+Both values must be non-negative integers.
+
 ```
 $ sqlread buildings.sql
 2017/12/22 12:23:52 starting initial pass
@@ -50,13 +53,9 @@ zip_code,varchar
 deleted,tinyint
 2017/12/22 12:24:08 restarting lexer
 
-> SELECT building_id, title FROM buildings;
+> SELECT building_id, title FROM buildings LIMIT 2;
 2,Home Building
 190,Test Building (demo)
-192,Donat Building
-194,Other Building
-201,Sample Building (demo)
-205,Johnson Building
 2017/12/22 12:24:44 restarting lexer
 
 > SELECT `building_id`, `title` FROM `buildings` INTO OUTFILE "dump.csv";
