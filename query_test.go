@@ -100,6 +100,28 @@ func TestQueryLimitIncludes(t *testing.T) {
 	}
 }
 
+func TestQueryLimitExhausted(t *testing.T) {
+	tests := []struct {
+		name     string
+		limit    QueryLimit
+		rowsSeen uint64
+		want     bool
+	}{
+		{name: "before offset", limit: QueryLimit{Offset: 1, Count: 2}, rowsSeen: 0, want: false},
+		{name: "within count", limit: QueryLimit{Offset: 1, Count: 2}, rowsSeen: 2, want: false},
+		{name: "after count", limit: QueryLimit{Offset: 1, Count: 2}, rowsSeen: 3, want: true},
+		{name: "zero count", limit: QueryLimit{Count: 0}, rowsSeen: 0, want: true},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if actual := test.limit.Exhausted(test.rowsSeen); actual != test.want {
+				t.Errorf("Exhausted(%d) = %t; want %t", test.rowsSeen, actual, test.want)
+			}
+		})
+	}
+}
+
 func parseUserQuery(input string) (QueryTree, error) {
 	return parseUserQueryReader(strings.NewReader(input))
 }
