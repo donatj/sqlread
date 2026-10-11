@@ -20,13 +20,10 @@ var (
 	nocache = flag.Bool("nocache", false, "disable caching")
 )
 
-func init() {
-	flag.Parse()
-
-	filename = flag.Arg(0)
-}
-
 func main() {
+	flag.Parse()
+	filename = flag.Arg(0)
+
 	log.Println("sqlread build:", buildString)
 	// return
 	log.Println("starting initial pass")
