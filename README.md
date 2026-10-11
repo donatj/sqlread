@@ -28,10 +28,28 @@ go install github.com/donatj/sqlread/cmd/sqlread@latest
 
 Available on the [Releases](https://github.com/donatj/sqlread/releases) page currently for Linux and macOS.
 
-## Example usage
+## User query grammar
 
-Interactive `SELECT` queries support `LIMIT count` and `LIMIT offset, count`.
-Both values must be non-negative integers.
+Square brackets (`[]`) mark optional clauses. Braces (`{}`) require one choice.
+A vertical bar (`|`) separates choices. An ellipsis (`...`) marks a repeated item.
+
+```
+SELECT { * | column_name } [, { * | column_name }] ...
+    FROM table_name
+    [INTO OUTFILE string]
+    [LIMIT { row_count | offset, row_count }];
+
+SHOW TABLES;
+SHOW COLUMNS FROM table_name;
+SHOW CREATE TABLE table_name;
+{ EXIT | QUIT };
+```
+
+Keywords are case-insensitive. Table names and column names may use backticks.
+`string` values may use single or double quotes. `offset` and `row_count` must be
+non-negative integers. Expressions, `WHERE`, and `ORDER BY` are not supported.
+
+## Example usage
 
 ```
 $ sqlread buildings.sql
