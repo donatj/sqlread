@@ -4,7 +4,6 @@ import (
 	"reflect"
 	"strings"
 	"testing"
-	"time"
 )
 
 func TestStringValue(t *testing.T) {
@@ -95,35 +94,5 @@ func TestInsertDetailControlEscapes(t *testing.T) {
 				t.Errorf("parsed rows = %q; want %q", actual, want)
 			}
 		})
-	}
-}
-
-func TestInsertDetailParserStop(t *testing.T) {
-	input := "INSERT INTO records VALUES " + strings.Repeat("(1),", 200) + "(1);"
-	l, items := Lex(strings.NewReader(input))
-	go l.Run(StartState)
-
-	detail := NewInsertDetailParser()
-	done := make(chan error, 1)
-	go func() {
-		done <- Parse(items).Run(detail.ParseStart)
-	}()
-
-	for range 10 {
-		<-detail.Out
-	}
-
-	detail.Stop()
-	l.Stop()
-	for range detail.Out {
-	}
-
-	select {
-	case err := <-done:
-		if err != nil {
-			t.Fatal(err)
-		}
-	case <-time.After(time.Second):
-		t.Fatal("parser did not stop")
 	}
 }

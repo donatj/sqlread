@@ -47,6 +47,9 @@ func TestQueryParserLimitRejectsNonIntegers(t *testing.T) {
 		"SELECT * FROM records LIMIT -1;",
 		"SELECT * FROM records LIMIT 1.5;",
 		"SELECT * FROM records LIMIT 1, count;",
+		"SELECT * FROM records LIMIT 18446744073709551616;",
+		"SELECT * FROM records LIMIT 1, 18446744073709551616;",
+		"SELECT * FROM records LIMIT 1 + 1;",
 	} {
 		t.Run(input, func(t *testing.T) {
 			_, err := parseUserQuery(input)
@@ -77,51 +80,6 @@ func TestQueryParserDoesNotReadPastSemicolon(t *testing.T) {
 	}
 }
 
-func TestQueryLimitIncludes(t *testing.T) {
-	tests := []struct {
-		name  string
-		limit QueryLimit
-		row   uint64
-		want  bool
-	}{
-		{name: "before offset", limit: QueryLimit{Offset: 1, Count: 2}, row: 0, want: false},
-		{name: "at offset", limit: QueryLimit{Offset: 1, Count: 2}, row: 1, want: true},
-		{name: "within count", limit: QueryLimit{Offset: 1, Count: 2}, row: 2, want: true},
-		{name: "after count", limit: QueryLimit{Offset: 1, Count: 2}, row: 3, want: false},
-		{name: "zero count", limit: QueryLimit{Count: 0}, row: 0, want: false},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			if actual := test.limit.Includes(test.row); actual != test.want {
-				t.Errorf("Includes(%d) = %t; want %t", test.row, actual, test.want)
-			}
-		})
-	}
-}
-
-func TestQueryLimitExhausted(t *testing.T) {
-	tests := []struct {
-		name     string
-		limit    QueryLimit
-		rowsSeen uint64
-		want     bool
-	}{
-		{name: "before offset", limit: QueryLimit{Offset: 1, Count: 2}, rowsSeen: 0, want: false},
-		{name: "within count", limit: QueryLimit{Offset: 1, Count: 2}, rowsSeen: 2, want: false},
-		{name: "after count", limit: QueryLimit{Offset: 1, Count: 2}, rowsSeen: 3, want: true},
-		{name: "zero count", limit: QueryLimit{Count: 0}, rowsSeen: 0, want: true},
-	}
-
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			if actual := test.limit.Exhausted(test.rowsSeen); actual != test.want {
-				t.Errorf("Exhausted(%d) = %t; want %t", test.rowsSeen, actual, test.want)
-			}
-		})
-	}
-}
-
 func parseUserQuery(input string) (QueryTree, error) {
 	return parseUserQueryReader(strings.NewReader(input))
 }
@@ -129,7 +87,15 @@ func parseUserQuery(input string) (QueryTree, error) {
 func parseUserQueryReader(input io.ReaderAt) (QueryTree, error) {
 	l, items := Lex(input)
 	intp := &Intp{}
-	go l.Run(intp.StartIntpState)
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		l.Run(intp.StartIntpState)
+	}()
+	defer func() {
+		l.Stop()
+		<-done
+	}()
 
 	query := NewQueryParser()
 	err := Parse(items).Run(query.ParseStart)

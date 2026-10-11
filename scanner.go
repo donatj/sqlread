@@ -78,6 +78,7 @@ type lexer struct {
 	items chan LexItem
 	done  chan struct{}
 	stop  sync.Once
+	err   error
 }
 
 const (
@@ -116,12 +117,16 @@ func (l *lexer) rewind() {
 
 func (l *lexer) peek(s int) (int, []byte) {
 	b := make([]byte, s)
+	if l.stopped() || l.err != nil {
+		return 0, b
+	}
 
 	n, err := l.input.ReadAt(b, l.pos)
 	if err == io.EOF {
 		return n, b
 	} else if err != nil {
-		panic(err)
+		l.err = err
+		return 0, b
 	}
 
 	return n, b
@@ -154,10 +159,16 @@ var (
 
 func (l *lexer) Run(start state) {
 	for state := start; state != nil; {
-		if l.stopped() {
+		if l.stopped() || l.err != nil {
 			break
 		}
 		state = state(l)
+	}
+	if l.err != nil {
+		select {
+		case l.items <- LexItem{Type: TIllegal, Val: l.err.Error(), Pos: l.pos}:
+		case <-l.done:
+		}
 	}
 	close(l.items)
 }
@@ -262,7 +273,8 @@ func Lex(input io.ReaderAt) (*lexer, chan LexItem) {
 func LexSection(input io.ReaderAt, off, n int64) (*lexer, chan LexItem) {
 	l := &lexer{
 		input: io.NewSectionReader(input, off, n),
-		items: make(chan LexItem, 2000000),
+		// Keep section lookahead small so short queries do not scan far ahead.
+		items: make(chan LexItem, 64),
 		done:  make(chan struct{}),
 	}
 
@@ -270,8 +282,14 @@ func LexSection(input io.ReaderAt, off, n int64) (*lexer, chan LexItem) {
 }
 
 func (l *lexer) emit(t lexItemType) LexItem {
+	if l.stopped() || l.err != nil {
+		return LexItem{Type: t, Pos: l.start}
+	}
 	b := make([]byte, l.pos-l.start)
-	l.input.ReadAt(b, l.start)
+	if _, err := l.input.ReadAt(b, l.start); err != nil {
+		l.err = err
+		return LexItem{Type: t, Pos: l.start}
+	}
 
 	li := LexItem{
 		Type: t,

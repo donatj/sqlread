@@ -10,14 +10,6 @@ type QueryLimit struct {
 	Count  uint64
 }
 
-func (l QueryLimit) Includes(row uint64) bool {
-	return row >= l.Offset && row-l.Offset < l.Count
-}
-
-func (l QueryLimit) Exhausted(rowsSeen uint64) bool {
-	return l.Count == 0 || (rowsSeen >= l.Offset && rowsSeen-l.Offset >= l.Count)
-}
-
 type Query struct {
 	Columns []string
 	Table   string

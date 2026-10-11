@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"io"
-	"log"
 	"sort"
 
 	"github.com/donatj/sqlread"
@@ -12,74 +11,16 @@ import (
 type DataWriter interface {
 	Write(record []string) error
 	Flush()
+	Error() error
 }
 
 func execQuery(tree sqlread.SummaryTree, qry sqlread.Query, buff io.ReaderAt, w DataWriter) error {
-	tbl, tok := tree[qry.Table]
-	if !tok {
-		return fmt.Errorf("table `%s` not found", qry.Table)
+	err := sqlread.ExecuteQuery(tree, qry, buff, w.Write)
+	w.Flush()
+	if err != nil {
+		return err
 	}
-	colind := []int{}
-	for _, col := range qry.Columns {
-		found := false
-		for tci, tcol := range tbl.Cols {
-			if col == "*" || col == tcol.Name {
-				found = true
-				colind = append(colind, tci)
-			}
-		}
-
-		if !found {
-			return fmt.Errorf("column `%s` not found", col)
-		}
-	}
-	var rowsSeen uint64
-	for _, loc := range tbl.DataLocs {
-		if qry.Limit != nil && qry.Limit.Exhausted(rowsSeen) {
-			return nil
-		}
-
-		start := loc.Start.Pos
-		end := loc.End.Pos
-
-		sl, sli := sqlread.LexSection(buff, start, end-start+1)
-		go func() {
-			sl.Run(sqlread.StartState)
-		}()
-
-		sp := sqlread.NewInsertDetailParser()
-
-		spr := sqlread.Parse(sli)
-		go func() {
-			err := spr.Run(sp.ParseStart)
-			if err != nil {
-				log.Fatal(err)
-			}
-		}()
-
-		for row := range sp.Out {
-			if qry.Limit != nil && !qry.Limit.Includes(rowsSeen) {
-				rowsSeen++
-				continue
-			}
-			rowsSeen++
-
-			out := make([]string, len(colind))
-			for i, ci := range colind {
-				out[i] = row[ci]
-			}
-
-			w.Write(out)
-
-			if qry.Limit != nil && qry.Limit.Exhausted(rowsSeen) {
-				sp.Stop()
-				sl.Stop()
-			}
-		}
-		w.Flush()
-	}
-
-	return nil
+	return w.Error()
 }
 
 func showColumns(tree sqlread.SummaryTree, sctbl string, w DataWriter) error {

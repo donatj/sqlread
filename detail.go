@@ -3,53 +3,33 @@ package sqlread
 import (
 	"errors"
 	"strings"
-	"sync"
 )
 
 type InsertDetailParser struct {
 	Out    chan []string
 	ColInd []int
-	done   chan struct{}
-	stop   sync.Once
 }
 
 func NewInsertDetailParser() *InsertDetailParser {
 	return &InsertDetailParser{
-		Out:  make(chan []string, 100),
-		done: make(chan struct{}),
-	}
-}
-
-func (d *InsertDetailParser) Stop() {
-	d.stop.Do(func() {
-		close(d.done)
-	})
-}
-
-func (d *InsertDetailParser) stopped() bool {
-	select {
-	case <-d.done:
-		return true
-	default:
-		return false
-	}
-}
-
-func (d *InsertDetailParser) writeRow(row []string) bool {
-	select {
-	case d.Out <- row:
-		return true
-	case <-d.done:
-		return false
+		Out: make(chan []string, 100),
 	}
 }
 
 func (d *InsertDetailParser) ParseStart(p *Parser) parseState {
 	defer close(d.Out)
+	return parseInsertRows(p, func(row []string) bool {
+		d.Out <- row
+		return true
+	})
+}
 
+// parseInsertRows stops when yield returns false. It does not retain completed rows.
+func parseInsertRows(p *Parser, yield func([]string) bool) parseState {
 	cii, ok := p.scan()
 	if !ok {
 		p.errorUnexpectedEOF()
+		return nil
 	}
 
 	if cii.Type != TInsertInto {
@@ -70,19 +50,14 @@ func (d *InsertDetailParser) ParseStart(p *Parser) parseState {
 	row := []string{}
 
 	for {
-		if d.stopped() {
+		v, ok := p.scan()
+		if !ok {
+			p.errorUnexpectedEOF()
 			return nil
 		}
 
-		v, ok := p.scan()
-		if !ok {
-			if d.stopped() {
-				return nil
-			}
-			p.errorUnexpectedEOF()
-		}
-
 		switch v.Type {
+		case TInsertValues:
 		case TString:
 			val, err := stringValue(v)
 			if err != nil {
@@ -98,12 +73,15 @@ func (d *InsertDetailParser) ParseStart(p *Parser) parseState {
 		case TNull:
 			row = append(row, "\u0000") // investigate
 		case TComma:
-			if !d.writeRow(row) {
+			if !yield(row) {
 				return nil
 			}
 			row = []string{}
 		case TSemi:
-			d.writeRow(row)
+			yield(row)
+			return nil
+		default:
+			p.errorUnexpectedLex(v, TInsertValues, TString, TNumber, THexLiteral, TNull, TComma, TSemi)
 			return nil
 		}
 	}
