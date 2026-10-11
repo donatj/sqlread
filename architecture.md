@@ -1,14 +1,20 @@
 # Architecture
 
-sqlread queries MySQL dump files without importing them into a database. Dumps
-may be much larger than available memory. The architecture must work within a
-small, explicit memory budget.
+sqlread queries MySQL dump files without importing them into a database. Its
+primary design goal is to process very large dumps on machines with limited
+memory. The dump may be many times larger than available memory. Low memory use
+is a core requirement that every feature must preserve.
+
+The existing tool has already been used successfully under these conditions.
+Future changes must preserve that capability. Memory requirements must not grow
+in proportion to the size of the dump.
 
 **Treat the file as memory.** Scan it to learn where data lives. Keep compact
 references to that data. Read the referenced bytes when they are needed.
 
-This document defines the intended architecture. Some existing code does not
-yet meet these requirements. The final section identifies those gaps.
+This document records that foundation and defines requirements for future work.
+The final section identifies areas to measure or refine within the existing
+implementation.
 
 ## Foundation: Lexical Scanning in Go
 
@@ -121,7 +127,7 @@ Every buffer, queue, and retained collection must have an understood bound.
 Document the reason for its capacity. Measure its cost before increasing it.
 
 - Keep token queues small. When a consumer slows down, the producer must wait.
-  A queue of millions of tokens defeats the memory goal.
+  Larger queues need a measured throughput benefit within the memory budget.
 - Bound queued bytes as well as item counts. One token can contain a huge value.
 - Emit source spans when text is not immediately needed. Avoid allocating a
   string for every literal during indexing.
@@ -185,10 +191,11 @@ Track application allocations separately from operating-system file caching.
 Measure throughput alongside memory. Any larger buffer needs evidence that its
 benefit is worth its retained memory.
 
-## Current implementation gaps
+## Areas to refine
 
-The current code already uses state functions and file positions. These areas
-still need to move toward the requirements above:
+The current code already uses state functions and file positions to support
+large dumps with limited memory. These areas merit measurement or refinement
+as the tool evolves:
 
 - [scanner.go](scanner.go) allocates channels for 2,000,000 tokens. Token emission
   copies source text into strings.
@@ -203,5 +210,6 @@ still need to move toward the requirements above:
 - [cmd/sqlread/query.go](cmd/sqlread/query.go) keeps execution in the command
   package. Worker completion and output errors need a consistent owner.
 
-These are implementation gaps, not exceptions to the architecture. Improvements
-should preserve the state-function foundation and the file as the backing store.
+Refinements must preserve the tool's ability to process very large dumps with
+limited memory. Keep the state-function foundation and the file as the backing
+store.
