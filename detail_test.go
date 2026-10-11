@@ -1,6 +1,10 @@
 package sqlread
 
-import "testing"
+import (
+	"reflect"
+	"strings"
+	"testing"
+)
 
 func TestStringValue(t *testing.T) {
 	tests := []struct {
@@ -28,5 +32,67 @@ func TestStringValue(t *testing.T) {
 		if actual != test.output || err != test.err {
 			t.Errorf(`stringValue(LexItem{Val: %#v}) = %#v, %#v; want %#v, %#v`, test.input, actual, err, test.output, test.err)
 		}
+	}
+}
+
+func TestStringValueControlEscapes(t *testing.T) {
+	tests := []struct {
+		name   string
+		input  string
+		output string
+	}{
+		{"backspace", "\\b", "\b"},
+		{"newline", "\\n", "\n"},
+		{"carriage return", "\\r", "\r"},
+		{"tab", "\\t", "\t"},
+		{"control Z", "\\Z", "\x1a"},
+		{"mixed", "\\b\\n\\r\\t\\Z", "\b\n\r\t\x1a"},
+		{"NUL", "\\0", "\x00"},
+		{"backslash", "\\\\", "\\"},
+		{"single quote", "\\'", "'"},
+		{"double quote", "\\\"", "\""},
+	}
+
+	for _, quote := range []string{"'", "\""} {
+		for _, test := range tests {
+			t.Run(quote+test.name, func(t *testing.T) {
+				input := quote + test.input + quote
+				actual, err := stringValue(LexItem{Val: input})
+				if actual != test.output || err != nil {
+					t.Errorf("stringValue(%q) = %q, %v; want %q, nil", input, actual, err, test.output)
+				}
+			})
+		}
+	}
+}
+
+func TestInsertDetailControlEscapes(t *testing.T) {
+	for _, quote := range []string{"'", "\""} {
+		t.Run(quote, func(t *testing.T) {
+			input := "INSERT INTO `records` VALUES (" +
+				quote + "left\\nright\\tend" + quote + "," +
+				quote + "\\b\\r\\Z" + quote + "),(" +
+				quote + "left\\\\nright\\\\tend" + quote + "," +
+				quote + "\\\\b\\\\r\\\\Z" + quote + ");"
+			want := [][]string{
+				{"left\nright\tend", "\b\r\x1a"},
+				{"left\\nright\\tend", "\\b\\r\\Z"},
+			}
+
+			l, items := Lex(strings.NewReader(input))
+			go l.Run(StartState)
+			d := NewInsertDetailParser()
+			if err := Parse(items).Run(d.ParseStart); err != nil {
+				t.Fatal(err)
+			}
+
+			var actual [][]string
+			for row := range d.Out {
+				actual = append(actual, row)
+			}
+			if !reflect.DeepEqual(actual, want) {
+				t.Errorf("parsed rows = %q; want %q", actual, want)
+			}
+		})
 	}
 }

@@ -108,15 +108,15 @@ func stringValue(c LexItem) (string, error) {
 			case '"': // \"	A double quote (") character
 				x = '"'
 			case 'b': // \b	A backspace character
-				x = 'b'
+				x = '\b'
 			case 'n': // \n	A newline (linefeed) character
-				x = 'n'
+				x = '\n'
 			case 'r': // \r	A carriage return character
-				x = 'r'
+				x = '\r'
 			case 't': // \t	A tab character
-				x = 't'
+				x = '\t'
 			case 'Z': // \Z	ASCII 26 (Control+Z); see note following the table
-				x = 'Z'
+				x = '\x1a'
 			case '%': // \%	A % character; see note following the table
 				x = '%'
 			case '_': // \_	A _ character; see note following the table
